@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node.js / npm
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# IDE / Editor
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+Thumbs.db
+.DS_Store
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+.~*
+
+# Sensitive / Secrets
+secrets/
+secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Project-specific
+data/
+*.csv
+*.json
+
+# Build artifacts
+*.pyc
+.pytest_cache/
+__pycache__
+.coverage
+htmlcov/
+
+# IDE specific
+.vscode/
+*.code-workspace
