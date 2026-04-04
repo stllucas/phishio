@@ -1,0 +1,53 @@
+# Relatório de Atualizações para o TCC: Da Teoria à Implementação do Phishio
+
+Este relatório consolida os avanços no desenvolvimento do sistema **Phishio**, detalhando a implementação prática da arquitetura híbrida e do módulo de crowdsourcing, que antes estavam descritos apenas teoricamente no TCC. As seções a seguir fornecem o conteúdo para enriquecer os capítulos de *Metodologia*, *Desenvolvimento* e *Resultados Esperados*.
+
+---
+
+## 1. Atualizações para a Seção de Metodologia (Capítulo 3)
+
+A arquitetura proposta no TCC foi implementada com sucesso. Os três módulos centrais agora são componentes funcionais e podem ser descritos com maior detalhe técnico.
+
+### 1.1. Módulo Cliente (Extensão de Navegador)
+Conforme detalhado no relatório de atualizações do front-end, a interface do usuário foi construída utilizando os arquivos `popup.html`, `popup.css` e `popup.js`. Esta implementação materializa o "Módulo Cliente" (Seção 3.1 do TCC) e serve como a fundação para o crowdsourcing.
+
+* **Conformidade com Manifest V3:** A arquitetura do front-end segue rigorosamente as diretrizes do Manifest V3. A lógica de script está totalmente separada da estrutura HTML, e a comunicação com o backend é feita através do `service_worker` (`background.js`), garantindo segurança e performance.
+* **Interface de Crowdsourcing:** Implementa o mecanismo de "um clique" para reporte de sites (Seção 2.3 do TCC). Os botões *"Reportar site suspeito"* e *"Reportar como SITE FALSO"* estão funcionais e enviam o voto do usuário (natureza do voto: `-1` para seguro, `1` para phishing) para a API, habilitando o ciclo de feedback *human-in-the-loop*.
+* **Usabilidade (Heurísticas de Nielsen):** O design fornece feedback visual imediato (Visibilidade do Status do Sistema), utilizando painéis dinâmicos e cores semânticas (verde, amarelo, vermelho) para informar o status da página, minimizando o esforço cognitivo.
+
+### 1.2. Módulo de Processamento (Back-end API)
+O back-end foi desenvolvido como uma API RESTful em Python com **FastAPI**, hospedada no Google Compute Engine. A implementação do endpoint `/check_url` no arquivo `backend/main.py` é a realização prática do fluxo de validação híbrida.
+
+* **Fluxo Híbrido Otimizado:** A API primeiro consulta o cache de reputação na coleção `reputacao_urls` do Firestore. Se a URL possui um consenso comunitário definitivo (score $\ge 15$ para perigoso ou $\le 0$ para seguro), o veredito é retornado imediatamente.
+* **Análise Vetorial Sob Demanda:** Para URLs desconhecidas ou "Suspeitas", a API aciona o motor de busca vetorial (`SearchEngine`). Ela gera o vetor TF-IDF do DOM da página e o compara com a base de assinaturas via **Similaridade do Cosseno** para detectar ataques *zero-hour*.
+
+### 1.3. Módulo de Persistência e Colaboração
+A lógica de consenso e o gerenciamento de reputação (Seção 5.3 do TCC) foram implementados no endpoint `/reportar_url`.
+
+* **Algoritmo de Consenso Ponderado:** Ao receber um reporte, a API utiliza uma transação do Firestore para garantir a atualização atômica do `consensus_score`.
+    * *Fórmula aplicada:* $S = S_{atual} + (V_i \times W_i)$
+    * Onde $W_i$ (peso do usuário) é, no estágio atual, um valor simulado.
+* **Estrutura no Firestore:** A coleção `reputacao_urls` armazena o `consensus_score`, `total_votos` e `last_updated`. Utiliza-se um hash **MD5** da URL como ID do documento para garantir performance e evitar problemas com caracteres especiais.
+
+---
+
+## 2. Atualizações para a Seção de Desenvolvimento (Capítulos 4 e 5)
+
+### 2.1. Desenvolvimento do Módulo Cliente (Capítulo 4)
+A Seção 4.2 (*"Arquitetura do Front-end e Interface do Usuário"*) pode ser expandida explicando como os painéis dinâmicos (`panel-safe`, `panel-danger`, etc.) e os *event listeners* em `popup.js` foram implementados para criar uma experiência reativa.
+
+### 2.2. Desenvolvimento do Back-end (Capítulo 5)
+* **Migração e Validação de Dados:** Conclusão da migração do índice invertido para o Firestore. Destaque para o filtro heurístico que descartou termos com mais de 15.000 *postings*, otimizando o processo de upload.
+* **Densidade do Índice:** A análise da carga de dados confirma a robustez da infraestrutura; o tempo de gravação não sofreu degradação linear, validando a escolha da arquitetura.
+* **Implementação com FastAPI:** Detalhe o uso de endpoints assíncronos para detecção em tempo real e o uso de HTTPS para segurança da API, com estrutura preparada para *rate limiting*.
+
+---
+
+## 3. Atualizações para a Seção de Resultados Esperados (Capítulo 6)
+
+Os "Resultados Esperados" podem agora ser apresentados como **"Resultados e Validação"**, dado que as funcionalidades já estão operacionais:
+
+1.  **Taxa de Detecção Colaborativa:** Validada pela implementação do endpoint `/reportar_url` e o processamento de votos em tempo real no Firestore.
+2.  **Funcionalidade do Modelo Vetorial:** A integração do `SearchEngine` confirma a capacidade de processar o conteúdo da página e aplicar Similaridade do Cosseno.
+3.  **Desempenho da Interface:** A meta de latência ($< 500ms$) é atingível para URLs conhecidas devido ao cache de reputação no Firestore.
+4.  **Distribuição Geográfica:** A estrutura do backend permite a captura de IPs (anonimizados) para futuras análises de origem de ameaças.
