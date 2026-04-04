@@ -1,4 +1,4 @@
-# phishio
+# O phishio
 
 **Phishio** é um sistema híbrido para detecção de *phishing* em tempo real, desenvolvido como um **Trabalho de Conclusão de Curso (TCC)**.
 
