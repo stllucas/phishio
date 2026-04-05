@@ -73,6 +73,7 @@ secrets
 data/
 *.csv
 *.json
+imagens-comportamentos/
 
 # Build artifacts
 *.pyc
