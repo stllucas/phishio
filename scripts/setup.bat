@@ -18,7 +18,7 @@ REM =================================================================
 REM --- PASSO 1 ---
 echo [1/6] Criando Ambiente Virtual (venv)...
 if exist venv\ goto :VenvExists
-python -m venv venv
+py -m venv venv
 if not exist venv\Scripts\activate.bat goto :VenvError
 echo [OK] Ambiente virtual 'venv' criado com sucesso.
 goto :Step2
@@ -45,7 +45,7 @@ call .\venv\Scripts\activate
 REM --- PASSO 3 ---
 echo.
 echo [3/6] Atualizando o PIP para a versao mais recente...
-python.exe -m pip install --upgrade pip
+py.exe -m pip install --upgrade pip
 
 REM --- PASSO 4 ---
 echo.
@@ -62,7 +62,7 @@ if exist "backend\requirements.txt" (
 REM --- PASSO 5 ---
 echo.
 echo [5/6] Baixando dados linguisticos do NLTK (stopwords, punkt)...
-python -m nltk.downloader -q stopwords punkt
+py -m nltk.downloader -q stopwords punkt
 echo [OK] Dados linguisticos verificados/baixados.
 
 REM --- PASSO 6 ---
@@ -87,7 +87,7 @@ REM Se chegou aqui: Fonte existe E destino nao existe. Executa migracao.
 echo [INFO] Arquivo de indice monolitico encontrado.
 echo [INFO] Iniciando migracao automatica para formato otimizado (Isso pode demorar)...
 echo.
-python "%MIGRATION_SCRIPT%"
+py "%MIGRATION_SCRIPT%"
 goto :MigrationEnd
 
 :SkipMigrationAlreadyDone
