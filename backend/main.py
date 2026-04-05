@@ -167,7 +167,7 @@ async def reportar_url(request: ReportRequest):
     transaction = db.transaction()
     doc_ref = db.collection('reputacao_urls').document(gerar_id_firestore(request.url))
 
-    @firestore.transactional
+    @firestore.async_transactional
     async def update_consensus_score(transaction, doc_ref, voto, weight):
         """
         Atualiza o score de consenso e o total de votos para uma URL.
