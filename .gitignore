@@ -98,6 +98,6 @@ htmlcov/
 .vscode/
 *.code-workspace
 
-# Old documents
-docs\Relatórios-RIWRS
+# Personal documents
+docs/Relatórios-RIWRS
 setup_pessoal.bat
