@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+google-cloud-firestore
+firebase-admin
+pandas
+requests
+tqdm
+beautifulsoup4
+nltk
+ijson
