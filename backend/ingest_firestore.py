@@ -1,6 +1,7 @@
-import time
-import csv
 import asyncio
+import csv
+import time
+
 from google.cloud import firestore
 
 # Initialize Firestore client (Ensure GOOGLE_APPLICATION_CREDENTIALS is set in environment)
@@ -25,7 +26,7 @@ async def process_term(termo, num_postings, data, start_task):
         return None
 
     # Add to Firestore (Batch processing is recommended for production)
-    doc_ref = db.collection('reputacao_urls').document(termo)
+    doc_ref = db.collection('reputacao_urls_v2').document(termo)
     await doc_ref.set(data)
     
     status = "SUCESSO"

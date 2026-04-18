@@ -2,11 +2,12 @@
 # backend/core/linguistic.py
 # Módulo central para recursos de Processamento de Linguagem Natural (PLN).
 # ==============================================================================
-import nltk
 import re
-import warnings
-from bs4 import BeautifulSoup
 from logging import getLogger
+
+# Bibliotecas de terceiros
+import nltk
+from bs4 import BeautifulSoup
 
 # Configuração do Logger
 logger = getLogger('ColetorLogger')
@@ -26,6 +27,7 @@ except nltk.downloader.DownloadError:
 STOPWORDS = set(nltk.corpus.stopwords.words('portuguese'))
 STEMMER = nltk.stem.SnowballStemmer("portuguese")
 
+
 def process_text(conteudo_html: str) -> list[str]:
     """Aplica análise léxica completa: limpeza de HTML, tokenização, remoção de stopwords e stemming."""
     try:
@@ -39,7 +41,8 @@ def process_text(conteudo_html: str) -> list[str]:
         texto_limpo = ""
 
     # 2. Normalização e Tokenização
-    limpo = re.sub(r'[^a-zA-ZáéíóúàèìòùãõâêîôûçÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÇ\s]', '', texto_limpo).lower()
+    limpo = re.sub(
+        r'[^a-zA-ZáéíóúàèìòùãõâêîôûçÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÇ\s]', '', texto_limpo).lower()
     tokens = limpo.split()
 
     # 3. Filtra stopwords, aplica stemming
