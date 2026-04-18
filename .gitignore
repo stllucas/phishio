@@ -71,14 +71,17 @@ secrets
 
 # Ignore directories with generated data artifacts.
 # This prevents committing large, machine-generated files to Git.
-/data/raw/              # Contains temporary HTML pages from collection
-/data/processed/        # Contains zipped collections and all index files (~4.6GB+)
-
+/data/*
+# /data/raw/                  # Contains temporary HTML pages from collection
+# /data/processed/            # Contains zipped collections and all index files (~4.6GB+)
+# /data/provas_unitarias/     # Contains outputs from utility/audit scripts
+# /data/html_pages_temp/      # Contains temporary HTML pages from collection
+    
 # Ignore all execution logs.
 /logs/
 
 # Ignore outputs from utility/audit scripts
-/provas_unitarias/
+/data/provas_unitarias/
 audit_checkpoint.json
 
 # Ignore old/custom folders
