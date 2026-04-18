@@ -5,9 +5,13 @@ import logging
 import os
 from datetime import datetime
 
+# ATUALIZADO: Usa o diretório de logs de execução
+from .Config import LOG_FILES_DIR
+
 # Cache do logger para tornar a configuração idempotente
 _LOGGER = None
 _LOG_FILENAME = None
+
 
 def setup_logging():
     """
@@ -21,14 +25,14 @@ def setup_logging():
     if _LOGGER is not None:
         return _LOGGER
 
-    # 1. Definir o subdiretório para logs de execução
-    from Config import LOG_DIR
-    log_execution_dir = os.path.join(LOG_DIR, 'execution_log')
+    # 1. Usa o diretório correto para logs de execução e cria a subpasta
+    log_execution_dir = os.path.join(LOG_FILES_DIR, 'execution_log')
     os.makedirs(log_execution_dir, exist_ok=True)
 
     # 2. Gerar o nome do arquivo com timestamp dentro do novo diretório
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_filename = os.path.join(log_execution_dir, f'coletor_run_{timestamp}.log')
+    log_filename = os.path.join(
+        log_execution_dir, f'coletor_run_{timestamp}.log')
     _LOG_FILENAME = log_filename
 
     # 3. Configuração do Logger
@@ -36,7 +40,8 @@ def setup_logging():
     logger.setLevel(logging.INFO)  # Nível mínimo para logging
 
     # Formato do log
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # Handler para o arquivo (novo log a cada execução)
     file_handler = logging.FileHandler(log_filename, encoding='utf-8')
