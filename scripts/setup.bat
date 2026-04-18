@@ -114,7 +114,7 @@ echo.
 echo [COMO INICIAR A SUA API / BACK-END]
 echo   1. Digite no terminal:  .\venv\Scripts\activate
 echo   2. Navegue ate a pasta: cd backend
-echo   3. Inicie o servidor:   uvicorn main:app --reload
+echo   3. Inicie o servidor:   py -m uvicorn main:app --reload
 echo.
 echo [COMO TESTAR A EXTENSAO / FRONT-END]
 echo   1. Abra o Chrome e acesse a URL: chrome://extensions/

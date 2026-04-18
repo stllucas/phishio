@@ -69,10 +69,19 @@ secrets
 *.pem
 *.key
 
-# Project-specific
-data/
-*.csv
-*.json
+# Ignore directories with generated data artifacts.
+# This prevents committing large, machine-generated files to Git.
+/data/raw/              # Contains temporary HTML pages from collection
+/data/processed/        # Contains zipped collections and all index files (~4.6GB+)
+
+# Ignore all execution logs.
+/logs/
+
+# Ignore outputs from utility/audit scripts
+/provas_unitarias/
+audit_checkpoint.json
+
+# Ignore old/custom folders
 imagens-comportamentos/
 
 # Build artifacts
@@ -85,3 +94,7 @@ htmlcov/
 # IDE specific
 .vscode/
 *.code-workspace
+
+# Old documents
+docs\Relatórios-RIWRS
+setup_pessoal.bat
