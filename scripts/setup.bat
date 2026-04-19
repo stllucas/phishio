@@ -49,14 +49,17 @@ py.exe -m pip install --upgrade pip
 
 REM --- PASSO 4 ---
 echo.
-echo [4/6] Instalando dependencias do projeto (FastAPI, Firestore, NLTK, etc.)...
-REM Verifica se existe o arquivo de requirements no backend
-if exist "backend\requirements.txt" (
-    echo [INFO] Encontrado backend\requirements.txt. Instalando pacotes...
-    pip install -r backend\requirements.txt
+echo [4/6] Instalando e atualizando dependencias do projeto...
+REM Verifica se existe o arquivo de requirements na raiz do projeto ou no backend
+if exist "requirements.txt" (
+    echo [INFO] Encontrado requirements.txt na raiz do projeto. Instalando e atualizando pacotes...
+    pip install --upgrade -r requirements.txt
+) else if exist "backend\requirements.txt" (
+    echo [INFO] Encontrado backend\requirements.txt. Instalando e atualizando pacotes...
+    pip install --upgrade -r backend\requirements.txt
 ) else (
     echo [INFO] requirements.txt nao encontrado. Instalando pacotes principais manualmente...
-    pip install fastapi uvicorn google-cloud-firestore pandas requests tqdm beautifulsoup4 nltk ijson firebase-admin
+    pip install --upgrade fastapi uvicorn google-cloud-firestore pandas requests tqdm beautifulsoup4 nltk ijson firebase-admin
 )
 
 REM --- PASSO 5 ---
@@ -120,6 +123,11 @@ echo [COMO TESTAR A EXTENSAO / FRONT-END]
 echo   1. Abra o Chrome e acesse a URL: chrome://extensions/
 echo   2. Ative o "Modo do desenvolvedor" (canto superior direito).
 echo   3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension' deste projeto.
+echo.
+echo [MANUTENCAO DO PROJETO]
+echo   Lembre-se: Caso novos pacotes ou dependencias sejam usados no projeto,
+echo   eles devem ser inseridos no arquivo 'requirements.txt'.
+echo   Isso garante que o ambiente seja instalado corretamente por todos.
 echo.
 echo Para mais informacoes, consulte o arquivo README.md
 echo.
