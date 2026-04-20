@@ -1,5 +1,6 @@
 import json
 import math
+import gc
 import os
 import time
 import sqlite3
@@ -27,39 +28,39 @@ class SearchEngine:
         logger.info(
             "[BACKEND INIT] Inicializando SearchEngine híbrido (RAM/SSD/SQLite)...")
 
-        # 1. Carrega artefatos leves na RAM (Removido o IDF_FILE daqui)
+        # 1. Carrega apenas o essencial na RAM
+        # O Mapa de Documentos (296k) cabe, mas o Vocabulário (25M) NÃO.
         self.doc_map = self._carregar_json_ram(
             DOCUMENT_MAP_FILE, "Mapa de Documentos")
-        self.vocabulario = self._carregar_json_ram(
-            VOCABULARIO_FILE, "Vocabulário de Metadados")
+
+        # Chamar o coletor de lixo para limpar resíduos da carga do JSON
+        gc.collect()
+
         self.doc_norms = self._carregar_json_ram(
             NORMS_FILE, "Normas dos Documentos")
+        gc.collect()
 
-        # 2. Conexão com o Banco IDF (SSD)
+        # 2. Conexão com o Banco Unificado (Contém IDF + Metadados do Vocabulário)
         if os.path.exists(IDF_DB_FILE):
-            # check_same_thread=False é necessário para o FastAPI (multithread)
             self.idf_conn = sqlite3.connect(
                 IDF_DB_FILE, check_same_thread=False)
             logger.info(
-                "[BACKEND INIT] Conexão com Banco IDF (SQLite) estabelecida.")
+                "[BACKEND INIT] Banco de Dados Unificado conectado (SSD).")
         else:
             logger.critical(
-                f"[BACKEND ERROR] Banco IDF não encontrado: {IDF_DB_FILE}")
-            raise FileNotFoundError(
-                "Execute o script de conversão para gerar o idf_warm.db primeiro.")
+                "[BACKEND ERROR] Banco idf_warm.db não encontrado!")
+            raise FileNotFoundError("Gere o banco unificado antes de iniciar.")
 
-        # 3. Abre o arquivo binário de Postings (SSD)
-        self.postings_handle = None
+        # 3. Ponteiro para o binário de Postings
         if os.path.exists(POSTINGS_BIN_FILE):
             self.postings_handle = open(POSTINGS_BIN_FILE, 'rb')
             logger.info(
-                "[BACKEND INIT] Ponteiro para arquivo binário de Postings aberto.")
+                "[BACKEND INIT] Acesso ao arquivo de Postings (SSD) OK.")
         else:
-            raise FileNotFoundError(
-                f"Arquivo binário não encontrado: {POSTINGS_BIN_FILE}")
+            raise FileNotFoundError("Arquivo postings.bin não encontrado.")
 
         logger.info(
-            "[BACKEND INIT] Inicialização concluída. RAM poupada com sucesso.")
+            "[BACKEND INIT] Inicialização concluída com economia de RAM.")
 
     @lru_cache(maxsize=10000)
     def get_idf_weight(self, term):
@@ -90,7 +91,6 @@ class SearchEngine:
             if idf > 0:
                 vetor_tfidf[termo] = tf * idf
         return vetor_tfidf
-
 
     def buscar_postings_por_termo(self, termo_processado):
         try:
