@@ -62,6 +62,23 @@ class SearchEngine:
         logger.info(
             "[BACKEND INIT] Inicialização concluída. Pronto para consultas.")
 
+	# Mapa de documentos de postings
+	self.idf_db_path = os.path.join(DATA_DIR, "idf_warm.db")
+	# Manter a conexão persistente para melhor performance
+	self.idf_conn = sqlite3.connect(self.idf_db_path, check_same_thread=FALSE)
+
+	@lru_cache(maxsize=5000)
+	def get_idf_weight(self, term):
+		"""Busca o peso IDF no SSD com cache para termos frequentes."""
+		cursor = self.idf_conn.cursor()
+		cursor.execute("SELECT weight FROM idf_table WHERE term = ?", (term,))
+		result = cursor.fetchone()
+		return result[0] if result else 0.0
+
+	def calculate_relevance (self, query_terms):
+		for term in query_terms:
+			wight = self.get_idf_weight(term)
+
     # ... (Métodos __del__, liberar_memoria_explicitamente e _carregar_json_ram) ...
     def __del__(self):
         if self.postings_handle:

@@ -1,5 +1,5 @@
 # ==============================================================================
-# backend/core/linguistic.py
+# backend/core/Linguistic.py
 # Módulo central para recursos de Processamento de Linguagem Natural (PLN).
 # ==============================================================================
 import re
