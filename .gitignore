@@ -102,3 +102,14 @@ htmlcov/
 docs/Relatórios-RIWRS
 setup_pessoal.bat
 extension/overlay.css.bkp
+
+# Ignorar arquivos gigantes de dados brutos
+maintenance/data-raw/
+*.json
+*.csv
+*.bin
+*.tar.gz
+
+# Mas NÃO ignorar os arquivos de configuração que estão na core
+!runtime/core/*.json
+!maintenance/scripts/**/*.py
