@@ -1,31 +1,31 @@
 // --- Listener de Mensagens do Service Worker (background.js) ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "getDomContent") {
-        const domContent = document.body.innerText;
-        sendResponse({ dom: domContent });
-        return true;
-    }
+  if (message.action === "getDomContent") {
+    const domContent = document.body.innerText;
+    sendResponse({ dom: domContent });
+    return true;
+  }
 
-    if (message.action === "displayPhishingOverlay") {
-        if (!document.getElementById('phishio-modal-host')) {
-            injectModal(message.status, message.url);
-        }
+  if (message.action === "displayPhishingOverlay") {
+    if (!document.getElementById("phishio-modal-host")) {
+      injectModal(message.status, message.url);
     }
+  }
 });
 
 /**
  * Cria e injeta o modal com Shadow DOM, Blur e Animações.
  */
 function injectModal(status, url) {
-    const host = document.createElement('div');
-    host.id = 'phishio-modal-host';
-    document.body.appendChild(host);
+  const host = document.createElement("div");
+  host.id = "phishio-modal-host";
+  document.body.appendChild(host);
 
-    const shadow = host.attachShadow({ mode: 'open' });
-    
-    // Injeção do HTML e CSS combinados para garantir as animações
-    const root = document.createElement('div');
-    root.innerHTML = `
+  const shadow = host.attachShadow({ mode: "open" });
+
+  // Injeção do HTML e CSS combinados para garantir as animações
+  const root = document.createElement("div");
+  root.innerHTML = `
         <style>
             /* Overlay com Blur Progressivo */
             .phishio-overlay {
@@ -99,75 +99,84 @@ function injectModal(status, url) {
         </style>
         ${getModalHtml(status, url)}
     `;
-    
-    shadow.appendChild(root);
-    addModalEventListeners(shadow, url, host);
+
+  shadow.appendChild(root);
+  addModalEventListeners(shadow, url, host);
 }
 
 function addModalEventListeners(shadow, url, host) {
-    // 1. Botão Voltar
-    const backButton = shadow.getElementById('phishio-back-btn');
-    if (backButton) {
-        backButton.onclick = () => {
-            if (window.history.length > 1) {
-                window.history.back();
-            } else if (document.referrer) {
-                window.location.href = document.referrer;
-            } else {
-                window.location.href = "https://www.google.com";
-            }
-        };
-    }
+  // 1. Botão Voltar
+  const backButton = shadow.getElementById("phishio-back-btn");
+  if (backButton) {
+    backButton.onclick = () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else if (document.referrer) {
+        window.location.href = document.referrer;
+      } else {
+        window.location.href = "https://www.google.com";
+      }
+    };
+  }
 
-    // 2. Botão Ignorar
-    const ignoreButton = shadow.getElementById('phishio-ignore-btn');
-    if (ignoreButton) {
-        ignoreButton.onclick = (e) => {
-            e.preventDefault();
-            host.remove();
-        };
-    }
+  // 2. Botão Ignorar
+  const ignoreButton = shadow.getElementById("phishio-ignore-btn");
+  if (ignoreButton) {
+    ignoreButton.onclick = (e) => {
+      e.preventDefault();
+      host.remove();
+    };
+  }
 
-    // 3. Botão Reportar como Seguro
-    const reportSafeButton = shadow.getElementById('phishio-report-safe-btn');
-    if (reportSafeButton) {
-        reportSafeButton.onclick = (e) => {
-            e.preventDefault();
-            // Chama a função reportUrl com voto -1 (Seguro)
-            reportUrl(url, -1, shadow, host);
-        };
-    }
+  // 3. Botão Reportar como Seguro
+  const reportSafeButton = shadow.getElementById("phishio-report-safe-btn");
+  if (reportSafeButton) {
+    reportSafeButton.onclick = (e) => {
+      e.preventDefault();
+      // Chama a função reportUrl com voto -1 (Seguro)
+      reportUrl(url, -1, shadow, host);
+    };
+  }
 }
 
 function reportUrl(url, vote, shadow, host) {
-    const feedback = shadow.getElementById('phishio-feedback-text');
-    feedback.textContent = 'Enviando reporte...';
+  const feedback = shadow.getElementById("phishio-feedback-text");
+  feedback.textContent = "Enviando reporte...";
 
-    chrome.runtime.sendMessage({ action: "reportUrl", url: url, vote: vote }, (response) => {
-        if (response && response.success) {
-            feedback.textContent = 'Obrigado! Reporte registrado.';
-            setTimeout(() => host.remove(), 2000);
-        } else {
-            feedback.textContent = 'Erro ao enviar reporte.';
-        }
-    });
+  chrome.runtime.sendMessage(
+    { action: "reportUrl", url: url, vote: vote },
+    (response) => {
+      if (response && response.success) {
+        feedback.textContent = "Obrigado! Reporte registrado.";
+        setTimeout(() => host.remove(), 2000);
+      } else {
+        feedback.textContent = "Erro ao enviar reporte.";
+      }
+    },
+  );
 }
 
 function getModalHtml(status, url) {
-    const urlHost = new URL(url).hostname;
-    const isPhishing = status === 'phishing';
-    
-    const config = {
-        icon: chrome.runtime.getURL(isPhishing ? 'icons/shield-danger-128.png' : 'icons/shield-warning-128.png'),
-        headerClass: isPhishing ? 'phishio-header--phishing' : 'phishio-header--suspicious',
-        title: isPhishing ? 'CUIDADO! SITE PERIGOSO' : 'ATENÇÃO! SITE SUSPEITO',
-        message: isPhishing 
-            ? `O Phishio identificou que <strong>${urlHost}</strong> é um site de phishing criado para roubar seus dados.`
-            : `O site <strong>${urlHost}</strong> possui comportamento suspeito. Evite inserir senhas ou dados pessoais.`,
-        btnText: isPhishing ? 'Sair agora (Recomendado)' : 'Voltar'
-    };
+  const urlHost = new URL(url).hostname;
+  const isPhishing = status === "phishing";
 
-    return `
+  const config = {
+    icon: chrome.runtime.getURL(
+      isPhishing
+        ? "icons/shield-danger-128.png"
+        : "icons/shield-warning-128.png",
+    ),
+    headerClass: isPhishing
+      ? "phishio-header--phishing"
+      : "phishio-header--suspicious",
+    title: isPhishing ? "CUIDADO! SITE PERIGOSO" : "ATENÇÃO! SITE SUSPEITO",
+    message: isPhishing
+      ? `O Phishio identificou que <strong>${urlHost}</strong> é um site de phishing criado para roubar seus dados.`
+      : `O site <strong>${urlHost}</strong> possui comportamento suspeito. Evite inserir senhas ou dados pessoais.`,
+    btnText: isPhishing ? "Sair agora (Recomendado)" : "Voltar",
+  };
+
+  return `
         <div class="phishio-overlay">
             <div class="phishio-modal">
                 <div class="phishio-header ${config.headerClass}">

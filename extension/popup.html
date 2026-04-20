@@ -1,83 +1,119 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Phishio</title>
-    <link rel="stylesheet" href="popup.css">
-</head>
-<body>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
     <header class="header">
-        <!-- Ajustado para o novo ícone logo -->
-        <img src="icons/logo-128.png" alt="Ícone Phishio" class="logo-icon">
-        <h1>Phishio</h1>
+      <!-- Ajustado para o novo ícone logo -->
+      <img src="icons/logo-128.png" alt="Ícone Phishio" class="logo-icon" />
+      <h1>Phishio</h1>
     </header>
 
     <main class="main-content">
-        <!-- Painel 1: Proteção Desligada -->
-        <div id="panel-inactive" class="panel">
-            <!-- CORREÇÃO: Caminho e formato ajustados -->
-            <img src="icons/shield-inactive-128.png" alt="Proteção Desligada" class="panel-icon">
-            <h2>Proteção Phishio Desligada</h2>
-            <div class="contribution-card">
-                <p>Você já avaliou <strong>0 sites</strong>. Obrigado por contribuir!</p>
-            </div>
+      <!-- Painel 1: Proteção Desligada -->
+      <div id="panel-inactive" class="panel">
+        <!-- CORREÇÃO: Caminho e formato ajustados -->
+        <img
+          src="icons/shield-inactive-128.png"
+          alt="Proteção Desligada"
+          class="panel-icon"
+        />
+        <h2>Proteção Phishio Desligada</h2>
+        <div class="contribution-card">
+          <p>
+            Você já avaliou <strong>0 sites</strong>. Obrigado por contribuir!
+          </p>
         </div>
+      </div>
 
-        <!-- Painel 2: Site Seguro -->
-        <div id="panel-safe" class="panel">
-            <img src="icons/shield-safe-128.png" alt="Site Seguro" class="panel-icon">
-            <h2 class="highlight-safe">Este site parece seguro</h2>
-            <p>Análise concluída. Sem ameaças detectadas.</p>
-            <button id="report-suspicious-from-safe" class="btn btn-yellow">Reportar site suspeito</button>
-        </div>
+      <!-- Painel 2: Site Seguro -->
+      <div id="panel-safe" class="panel">
+        <img
+          src="icons/shield-safe-128.png"
+          alt="Site Seguro"
+          class="panel-icon"
+        />
+        <h2 class="highlight-safe">Este site parece seguro</h2>
+        <p>Análise concluída. Sem ameaças detectadas.</p>
+        <button id="report-suspicious-from-safe" class="btn btn-yellow">
+          Reportar site suspeito
+        </button>
+      </div>
 
-        <!-- Painel 3: Site Suspeito -->
-        <div id="panel-suspicious" class="panel">
-            <img src="icons/shield-warning-128.png" alt="Site Suspeito" class="panel-icon">
-            <h2 class="highlight-suspicious">Tenha cautela, este site pode ser perigoso.</h2>
-            <p>Alguns usuários reportaram este site como suspeito.</p>
-            <div class="button-group">
-                <button id="report-safe-from-suspicious" class="btn btn-green">Reportar site seguro</button>
-                <button id="report-suspicious-from-suspicious" class="btn btn-yellow">Reportar site suspeito</button>
-            </div>
+      <!-- Painel 3: Site Suspeito -->
+      <div id="panel-suspicious" class="panel">
+        <img
+          src="icons/shield-warning-128.png"
+          alt="Site Suspeito"
+          class="panel-icon"
+        />
+        <h2 class="highlight-suspicious">
+          Tenha cautela, este site pode ser perigoso.
+        </h2>
+        <p>Alguns usuários reportaram este site como suspeito.</p>
+        <div class="button-group">
+          <button id="report-safe-from-suspicious" class="btn btn-green">
+            Reportar site seguro
+          </button>
+          <button id="report-suspicious-from-suspicious" class="btn btn-yellow">
+            Reportar site suspeito
+          </button>
         </div>
+      </div>
 
-        <!-- Painel 4: Phishing Detectado -->
-        <div id="panel-danger" class="panel">
-            <div class="danger-header">
-                <img src="icons/shield-danger-128.png" alt="Phishing Detectado" class="panel-icon">
-                <h2>CUIDADO! PHISHING DETECTADO.</h2>
-            </div>
-            <p>Identificamos esta página como fraudulenta!</p>
-            <div class="button-group">
-                <button id="go-back" class="btn btn-red">Voltar</button>
-                <button id="ignore-warning" class="btn btn-link">Ignorar e continuar (não recomendado)</button>
-            </div>
+      <!-- Painel 4: Phishing Detectado -->
+      <div id="panel-danger" class="panel">
+        <div class="danger-header">
+          <img
+            src="icons/shield-danger-128.png"
+            alt="Phishing Detectado"
+            class="panel-icon"
+          />
+          <h2>CUIDADO! PHISHING DETECTADO.</h2>
         </div>
+        <p>Identificamos esta página como fraudulenta!</p>
+        <div class="button-group">
+          <button id="go-back" class="btn btn-red">Voltar</button>
+          <button id="ignore-warning" class="btn btn-link">
+            Ignorar e continuar (não recomendado)
+          </button>
+        </div>
+      </div>
 
-        <!-- Painel 5: Feedback / Reporte -->
-        <div id="panel-feedback" class="panel">
-            <!-- CORREÇÃO: Se você tiver um shield-feedback-128.png na pasta icons -->
-            <img src="icons/shield-feedback-128.png" alt="Feedback" class="panel-icon">
-            <h2>Encontrou um erro?</h2>
-            <p>Ajude a comunidade. Qual o status correto deste site?</p>
-            <div class="button-group">
-                <button id="report-fake" class="btn btn-dark-red">Reportar como SITE FALSO</button>
-                <button id="report-safe-from-feedback" class="btn btn-blue-green">Reportar como SITE SEGURO</button>
-            </div>
+      <!-- Painel 5: Feedback / Reporte -->
+      <div id="panel-feedback" class="panel">
+        <!-- CORREÇÃO: Se você tiver um shield-feedback-128.png na pasta icons -->
+        <img
+          src="icons/shield-feedback-128.png"
+          alt="Feedback"
+          class="panel-icon"
+        />
+        <h2>Encontrou um erro?</h2>
+        <p>Ajude a comunidade. Qual o status correto deste site?</p>
+        <div class="button-group">
+          <button id="report-fake" class="btn btn-dark-red">
+            Reportar como SITE FALSO
+          </button>
+          <button id="report-safe-from-feedback" class="btn btn-blue-green">
+            Reportar como SITE SEGURO
+          </button>
         </div>
+      </div>
     </main>
 
     <footer class="footer">
-        <span id="protection-status-text">Proteção Ativa</span>
-        <label class="switch">
-            <!-- O ID deve ser exatamente este para bater com o popup.js -->
-            <input type="checkbox" id="protection-toggle" checked>
-            <span class="slider round"></span>
-        </label>
+      <span id="protection-status-text">Proteção Ativa</span>
+      <label class="switch">
+        <!-- O ID deve ser exatamente este para bater com o popup.js -->
+        <input type="checkbox" id="protection-toggle" checked />
+        <span class="slider round"></span>
+      </label>
     </footer>
 
     <script src="popup.js"></script>
-</body>
+  </body>
 </html>
