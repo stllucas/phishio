@@ -1,7 +1,7 @@
 import sqlite3
 import ijson
 import os
-from runtime.core.Config import DATA_DIR, IDF_PATH, VOCABULARIO_FILE
+from runtime.core.Config import DATA_DIR, IDF_PATH, VOCAB_PATH
 
 
 def converter_indice_completo():
@@ -24,7 +24,7 @@ def converter_indice_completo():
 
     # Carregamos o vocabulário (metadados) primeiro para cruzar dados
     # Se o vocabulario.json for muito grande para abrir aqui, usaremos ijson também
-    with open(IDF_PATH, 'rb') as f_idf, open(VOCABULARIO_FILE, 'rb') as f_vocab:
+    with open(IDF_PATH, 'rb') as f_idf, open(VOCAB_PATH, 'rb') as f_vocab:
         idf_items = ijson.kvitems(f_idf, '')
         vocab_items = ijson.kvitems(f_vocab, '')
 
