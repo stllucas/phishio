@@ -1,67 +1,53 @@
-# Python
+# ==============================================================================
+# GITHUB IGNORE - PROJETO PHISHIO
+# ==============================================================================
+
+# --- AMBIENTE VIRTUAL E PYTHON ---
+venv/
+.venv/
+ENV/
+env/
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-venv/
-ENV/
-env/
-.venv
-pip-log.txt
-pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Node.js / npm
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
-
-# IDE / Editor
+# --- SISTEMA OPERACIONAL E IDEs ---
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
 *.swp
 *.swo
 *~
-.project
-.pydevproject
-.settings/
-*.sublime-project
-*.sublime-workspace
-
-# OS
-Thumbs.db
-.DS_Store
-*.log
-
-# Temporary files
 *.tmp
 *.bak
-*.swp
-*~
-.~*
+*.lnk
 
-# Sensitive / Secrets
+# --- ARTEFATOS DE DADOS E LOGS (CAMADA WARM/COLD) ---
+# Ignora diretórios de dados brutos e artefatos de 10GB+
+data/
+logs/
+maintenance/data-raw/
+maintenance/data-processed/
+maintenance/provas_unitarias/
+maintenance/html_pages_temp/
+imagens-comportamentos/
+
+# Ignora formatos de arquivos pesados em qualquer pasta
+*.json
+*.csv
+*.bin
+*.tar.gz
+
+# --- SEGURANÇA E SEGREDOS ---
 secrets/
 secrets
 .env
@@ -69,46 +55,25 @@ secrets
 *.pem
 *.key
 
-# Ignore directories with generated data artifacts.
-# This prevents committing large, machine-generated files to Git.
-# /data/*
-# /data/raw/                  # Contains temporary HTML pages from collection
-# /data/processed/            # Contains zipped collections and all index files (~4.6GB+)
-# /data/provas_unitarias/     # Contains outputs from utility/audit scripts
-# /data/html_pages_temp/      # Contains temporary HTML pages from collection
-    
-# Ignore all execution logs.
-/logs/
-
-# Ignore old/custom folders
-imagens-comportamentos/
-
-# Build artifacts
-*.pyc
-.pytest_cache/
-__pycache__
-.coverage
-htmlcov/
-
-# IDE specific
-.vscode/
-*.code-workspace
-
-# Personal documents
+# --- DOCUMENTOS PESSOAIS E BACKUPS ---
 docs/Relatórios-RIWRS
 setup_pessoal.bat
 extension/overlay.css.bkp
 
-# Ignorar arquivos gigantes de dados brutos
-#maintenance/data-raw/
-*.json
-*.csv
-*.bin
-*.tar.gz
-maintenance/scripts/collector/secrets.Ink
+# ==============================================================================
+# EXCEÇÕES (NÃO IGNORAR)
+# Estes arquivos são essenciais para o funcionamento do projeto e do GitHub
+# ==============================================================================
+
+# Não ignorar o manifesto da extensão (essencial para o Pedro)
 !/extension/manifest.json
 
-# Mas NÃO ignorar os arquivos de configuração que estão na core
+# Não ignorar arquivos de configuração leves do core
 !runtime/core/*.json
+
+# Não ignorar os scripts de manutenção
 !maintenance/scripts/**/*.py
-maintenance/scripts/collector/secrets.lnk
+
+# Garante que arquivos README e requirements não sejam ignorados por engano
+!README.md
+!requirements.txt
