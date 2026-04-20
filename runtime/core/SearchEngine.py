@@ -13,7 +13,7 @@ from logging import getLogger
 
 # Imports locais
 from .Config import LOG_DIR_OUTPUT
-from .linguistic import process_text
+from .Linguistic import process_text
 
 # --- Definição dos Caminhos dos Artefatos ---
 DOCUMENT_MAP_FILE = os.path.join(LOG_DIR_OUTPUT, 'document_map.json')

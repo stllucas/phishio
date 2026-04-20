@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Phishio",
+  "version": "1.1.0",
+  "description": "Detecta phishing em tempo real usando uma abordagem híbrida de análise de conteúdo e crowdsourcing.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icons/shield-safe-48.png",
+      "128": "icons/shield-safe-128.png"
+    }
+  },
+  "icons": {
+    "48": "icons/logo-48.png",
+    "128": "icons/logo-128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+  {
+    "resources": [ "icons/*.png" ],
+    "matches": [ "<all_urls>" ]
+  }
+]
+}

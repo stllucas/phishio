@@ -34,7 +34,7 @@ try:
     # Para facilitar o desenvolvimento local, as credenciais são carregadas de um arquivo.
     if not SECRETS_FILE.exists():
         raise FileNotFoundError(
-            f"Arquivo de credenciais não encontrado em: {SECRETS_FILE.resolve()}. Verifique se o arquivo 'secrets' está na pasta raiz do projeto."
+            f"Arquivo de credenciais não encontrado em: {SECRETS_FILE.resolve()}. Verifique se o arquivo 'secrets' está na pasta 'runtime'."
         )
     gcp_credentials = service_account.Credentials.from_service_account_file(
         SECRETS_FILE

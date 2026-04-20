@@ -1,5 +1,5 @@
 // background.js
-const API_ENDPOINT = "http://127.0.0.1:8000";
+const API_ENDPOINT = "http://206.189.204.241:8000";
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // 1. Verifica se a página carregou e se é uma URL válida

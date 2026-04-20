@@ -71,7 +71,7 @@ secrets
 
 # Ignore directories with generated data artifacts.
 # This prevents committing large, machine-generated files to Git.
-/data/*
+# /data/*
 # /data/raw/                  # Contains temporary HTML pages from collection
 # /data/processed/            # Contains zipped collections and all index files (~4.6GB+)
 # /data/provas_unitarias/     # Contains outputs from utility/audit scripts
@@ -79,10 +79,6 @@ secrets
     
 # Ignore all execution logs.
 /logs/
-
-# Ignore outputs from utility/audit scripts
-/data/provas_unitarias/
-audit_checkpoint.json
 
 # Ignore old/custom folders
 imagens-comportamentos/
@@ -104,12 +100,15 @@ setup_pessoal.bat
 extension/overlay.css.bkp
 
 # Ignorar arquivos gigantes de dados brutos
-maintenance/data-raw/
+#maintenance/data-raw/
 *.json
 *.csv
 *.bin
 *.tar.gz
+maintenance/scripts/collector/secrets.Ink
+!/extension/manifest.json
 
 # Mas NÃO ignorar os arquivos de configuração que estão na core
 !runtime/core/*.json
 !maintenance/scripts/**/*.py
+maintenance/scripts/collector/secrets.lnk
