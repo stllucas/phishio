@@ -11,14 +11,14 @@ import pandas as pd
 from tqdm import tqdm
 
 # Imports locais
-from .Config import (
+from runtime.core.Config import (
     BASE_PATH,
     DATASETS_DIR,
     LOG_DIR_OUTPUT,
     OUTPUT_DIR_TEMP,
     ZIP_OUTPUT_DIR,
 )
-from .Logging import setup_logging
+from runtime.core.Logging import setup_logging
 from .Relatorio import GeradorRelatorio
 from .Verificador import Verificador
 

@@ -2,7 +2,7 @@ import json
 import math
 import os
 from tqdm import tqdm
-from Config import LOG_DIR
+from runtime.core.Config import LOG_DIR
 
 # Caminhos dos arquivos dentro da pasta `logs` (definida em src/config.py)
 INDICE_PATH = os.path.join(LOG_DIR, 'indice_invertido.json')

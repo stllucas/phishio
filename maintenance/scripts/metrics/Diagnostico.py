@@ -19,8 +19,8 @@ if BACKEND_DIR not in sys.path:
 # 2. Importar o logger (opcional, mas recomendado para formatar a saída)
 try:
     # Imports locais
-    from core.Config import get_index_artifact_path
-    from core.Logging import setup_logging
+    from runtime.core.Config import get_index_artifact_path
+    from runtime.core.Logging import setup_logging
     # Inicializa o logger para esta execução
     logger = setup_logging()
 except ImportError:

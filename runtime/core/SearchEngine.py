@@ -91,17 +91,24 @@ class SearchEngine:
                 vetor_tfidf[termo] = tf * idf
         return vetor_tfidf
 
+
     def buscar_postings_por_termo(self, termo_processado):
-        metadata = self.vocabulario.get(termo_processado)
-        if not metadata:
-            return None
         try:
-            self.postings_handle.seek(metadata['offset'])
-            bin_data = self.postings_handle.read(metadata['length'])
+            cursor = self.idf_conn.cursor()
+            # Busca peso, offset e length de uma só vez!
+            cursor.execute(
+                "SELECT offset, length FROM idf_table WHERE term = ?", (termo_processado,))
+            result = cursor.fetchone()
+
+            if not result:
+                return None
+
+            offset, length = result
+            self.postings_handle.seek(offset)
+            bin_data = self.postings_handle.read(length)
             return json.loads(bin_data.decode('utf-8'))
         except Exception as e:
-            logger.error(
-                f"[SSD I/O ERROR] Falha no termo '{termo_processado}': {e}")
+            logger.error(f"[ERROR] Falha no termo '{termo_processado}': {e}")
             return None
 
     def ranquear_documentos_completo(self, consulta_tfidf: dict):

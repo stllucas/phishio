@@ -14,7 +14,7 @@ try:
     import ijson
     from tqdm import tqdm
 
-    from backend.core.Config import LOG_DIR_OUTPUT
+    from runtime.core.Config import LOG_DIR_OUTPUT
 except ImportError as e:
     print(f"Erro de importação: {e}")
     print("Verifique se está rodando do ambiente virtual e se 'ijson' e 'tqdm' estão instalados.")

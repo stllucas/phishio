@@ -1,7 +1,7 @@
 import sqlite3
 import ijson
 import os
-from core.Config import DATA_DIR, IDF_PATH
+from runtime.core.Config import DATA_DIR, IDF_PATH
 
 def converter_idf_para_sqlite():
     db_path = os.path.join(DATA_DIR, "idf_warm.db")
