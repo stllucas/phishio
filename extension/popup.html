@@ -4,43 +4,68 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Phishio</title>
-    <link rel="stylesheet" href="popup.css">
-</head>
-<body>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Righteous&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="popup.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phishio</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
     <div class="container">
-        <header class="header">
-            <img src="icons/logo-128.png" alt="Phishio Logo" class="logo-img"> 
-            <span class="logo-text">Phishio</span>
-        </header>
+      <header class="header">
+        <img src="icons/logo-128.png" alt="Phishio Logo" class="logo-img" />
+        <span class="logo-text">Phishio</span>
+      </header>
 
-        <hr class="divider">
+      <hr class="divider" />
 
-        <main class="main-content" id="content-area">
-    <img src="icons/logo-128.png" alt="Escudo Desativado" class="shield-icon" id="main-icon">
+      <main class="main-content" id="content-area">
+        <img
+          src="icons/logo-128.png"
+          alt="Escudo Desativado"
+          class="shield-icon"
+          id="main-icon"
+        />
 
-    <div class="status-badge off" id="status-badge">
-        Proteção Phishio Desligada
-    </div>
-
-    <div class="contribution-box" id="info-box">
-        <h3 id="box-title">Sua contribuição</h3>
-        <div class="contribution-content" id="inner-content">
-           <p>Você ajudou a avaliar <span id="eval-count">[x]</span> <img src="images/svg/thumbsup.png" alt="Joinha" class="thumbsup-icon"> <br>sites na nossa rede colaborativa</p>
+        <div class="status-badge off" id="status-badge">
+          Proteção Phishio Desligada
         </div>
-    </div>
-</main>
 
-        <hr class="divider">
+        <div class="contribution-box" id="info-box">
+          <h3 id="box-title">Sua contribuição</h3>
+          <div class="contribution-content" id="inner-content">
+            <p>
+              Você ajudou a avaliar <span id="eval-count">[x]</span>
+              <img
+                src="images/svg/thumbsup.png"
+                alt="Joinha"
+                class="thumbsup-icon"
+              />
+              <br />sites na nossa rede colaborativa
+            </p>
+          </div>
+        </div>
+      </main>
 
-        <footer class="footer">
-            <span class="toggle-label">Proteção Ativa</span>
-            <label class="switch">
-                <input type="checkbox" id="protection-toggle">
-                <span class="slider round"></span>
-            </label>
-        </footer>
+      <hr class="divider" />
+
+      <footer class="footer">
+        <span class="toggle-label">Proteção Ativa</span>
+        <label class="switch">
+          <input type="checkbox" id="protection-toggle" />
+          <span class="slider round"></span>
+        </label>
+      </footer>
     </div>
-    
+
     <script src="popup.js"></script>
   </body>
 </html>
