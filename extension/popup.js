@@ -8,30 +8,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateDisplayState() {
     chrome.storage.local.get(["protectionActive"], function (result) {
-      if (!result.protectionActive) {
+      if (result.protectionActive === false) {
         toggle.checked = false;
         showOffScreen();
       } else {
         toggle.checked = true;
-
-        // PEGA A ABA ATUAL
         chrome.tabs.query(
           { active: true, currentWindow: true },
           function (tabs) {
             if (tabs[0]) {
               const tabId = tabs[0].id;
-
-              // BUSCA O VEREDITO REAL DO BACKEND
               chrome.storage.local.get([`status_${tabId}`], function (data) {
                 const status = data[`status_${tabId}`] || "safe";
 
-                if (status === "phishing") {
-                  showPerigoScreen();
-                } else if (status === "suspect") {
+                // Normalização das strings do backend
+                if (status === "phishing") showPerigoScreen();
+                else if (status === "suspect" || status === "suspicious")
                   showSuspeitoScreen();
-                } else {
-                  showSecureScreen();
-                }
+                else showSecureScreen();
               });
             }
           },
@@ -40,40 +34,56 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function realizarReporte(voto) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      const urlAtual = tabs[0].url;
+  // Heurística de Nielsen: Visibilidade do estado do sistema (Feedback visual)
+  // No popup.js
+  function realizarReporte(voto, botaoClicado) {
+    const textoOriginal = botaoClicado.innerHTML;
+    botaoClicado.innerHTML = "<strong>Enviando...</strong>";
+    botaoClicado.disabled = true;
 
-      // Envia para o background.js processar
+    // Remove mensagens de erro anteriores, se houver, para não acumular
+    const erroAntigo = document.getElementById("phishio-inline-error");
+    if (erroAntigo) erroAntigo.remove();
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.runtime.sendMessage(
-        {
-          action: "reportUrl",
-          url: urlAtual,
-          vote: voto, // 1 para phishing, -1 para seguro
-        },
+        { action: "reportUrl", url: tabs[0].url, vote: voto },
         (response) => {
           if (response && response.success) {
             showSuccessMessage(voto === 1 ? "fake" : "secure");
+          } else {
+            // Reverte o botão para o estado original
+            botaoClicado.innerHTML = textoOriginal;
+            botaoClicado.disabled = false;
+
+            // Cria o feedback visual de erro elegante (Nielsen)
+            const erroDiv = document.createElement("div");
+            erroDiv.id = "phishio-inline-error";
+            erroDiv.style.color = "#c62828"; // Vermelho erro
+            erroDiv.style.fontSize = "12px";
+            erroDiv.style.marginTop = "12px";
+            erroDiv.style.fontWeight = "bold";
+            erroDiv.style.textAlign = "center";
+            erroDiv.style.width = "100%";
+            erroDiv.innerHTML = "❌ Erro ao enviar reporte. Tente novamente.";
+
+            // Adiciona a mensagem de erro logo após o grupo de botões
+            botaoClicado.parentNode.parentNode.appendChild(erroDiv);
           }
         },
       );
     });
   }
 
-  // Função para buscar o total de joinhas e colocar no HTML
   function atualizarContadorUI() {
     chrome.storage.local.get(["totalAvaliacoes"], (result) => {
-      const countElement = document.getElementById("eval-count");
-      if (countElement) {
-        countElement.textContent = result.totalAvaliacoes || 0;
-      }
+      const counts = document.querySelectorAll("#eval-count");
+      counts.forEach((el) => (el.textContent = result.totalAvaliacoes || 0));
     });
   }
 
-  // INICIALIZAÇÃO
   updateDisplayState();
 
-  // TELA DESLIGADO
   function showOffScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-inactive-128.svg";
@@ -82,18 +92,18 @@ document.addEventListener("DOMContentLoaded", function () {
     infoBox.className = "contribution-box off";
     boxTitle.style.display = "none";
     innerContent.innerHTML = `
-            <div class="contribution-content">
-                <p style="margin: 0; font-size: 16px; color: #9c6363;">
-                    Você ajudou a avaliar <span id="eval-count">[x]</span> 
-                    <img src="images/svg/thumbsup.png" alt="Joinha" class="thumbsup-icon"> 
-                    <br>sites na nossa rede colaborativa
-                </p>
-            </div>
-        `;
-    atualizarContadorUI();
+        <div class="contribution-content">
+            <img src="images/svg/thumbsup.png" alt="Joinha" class="thumbsup-icon"> 
+            <p style="margin: 0; font-size: 16px; color: #9c6363;">
+                Você ajudou a avaliar <span id="eval-count">0</span> 
+                <br>sites na nossa rede colaborativa
+                <br>sites na nossa rede colaborativa
+            </p>
+        </div>
+    `;
+    atualizarContadorUI(); // Atualiza o [x]
   }
 
-  //TELA SEGURA
   function showSecureScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-active-128.svg";
@@ -102,90 +112,58 @@ document.addEventListener("DOMContentLoaded", function () {
     infoBox.className = "contribution-box secure";
     boxTitle.style.display = "none";
     innerContent.innerHTML = `
-            <div class="contribution-content">
-                <div style="color: #000000; font-weight: 500; margin-bottom: 8px;">
-                    Análise concluída<br>
-                    <strong>Sem ameaças detectadas.</strong>
-                </div>
-                <button class="report-btn" id="go-to-feedback">Reportar site suspeito</button>
+        <div class="contribution-content">
+            <div style="color: #000000; font-weight: 500; margin-bottom: 8px;">
+                Análise concluída<br><strong>Sem ameaças detectadas.</strong>
             </div>
-        `;
+            <button class="report-btn" id="go-to-feedback">Reportar site suspeito</button>
+        </div>
+    `;
     document.getElementById("go-to-feedback").onclick = showFeedbackScreen;
   }
 
-  //TELA SUSPEITA
   function showSuspeitoScreen() {
     removeBackButton();
-
     mainIcon.src = "images/svg/shield-suspicious-128.svg";
-
     statusBadge.textContent = "Tenha cautela, este site pode ser perigoso.";
     statusBadge.className = "status-badge suspect";
-
     infoBox.className = "contribution-box suspect";
     boxTitle.style.display = "none";
-
     innerContent.innerHTML = `
-        <div class="suspect-text">
-            Alguns usuários reportaram<br>este site como suspeito
-        </div>
+        <div class="suspect-text">Alguns usuários reportaram<br>este site como suspeito</div>
         <div class="suspect-button-group">
-            <button class="suspect-choice-btn btn-choice-secure" id="confirm-secure-choice">
-                Reportar<br>site seguro
-            </button>
-            <button class="suspect-choice-btn btn-choice-suspect" id="confirm-suspect-choice">
-                Reportar site<br>suspeito
-            </button>
+            <button class="suspect-choice-btn btn-choice-secure" id="confirm-secure-choice">Reportar<br>site seguro</button>
+            <button class="suspect-choice-btn btn-choice-suspect" id="confirm-suspect-choice">Reportar site<br>suspeito</button>
         </div>
     `;
-
-    document.getElementById("confirm-secure-choice").onclick = () =>
-      realizarReporte(-1);
-    document.getElementById("confirm-suspect-choice").onclick = () =>
-      realizarReporte(1);
+    document.getElementById("confirm-secure-choice").onclick = (e) =>
+      realizarReporte(-1, e.currentTarget);
+    document.getElementById("confirm-suspect-choice").onclick = (e) =>
+      realizarReporte(1, e.currentTarget);
   }
 
-  // TELA PERIGO
   function showPerigoScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-danger-128.svg";
-
-    //badge
     statusBadge.innerHTML = "CUIDADO!<br>PHISHING DETECTADO.";
     statusBadge.className = "status-badge danger";
-
-    //alert
     infoBox.className = "contribution-box danger";
     boxTitle.style.display = "none";
-
     innerContent.innerHTML = `
-        <div class="danger-text">
-            Identificamos esta<br>página como fraudulenta!
-        </div>
+        <div class="danger-text">Identificamos esta<br>página como fraudulenta!</div>
         <div class="danger-button-group">
-            <button class="btn-danger-back" id="danger-back-btn">
-                <strong>Voltar<strong>
-            </button>
-            <button class="btn-danger-ignore" id="danger-ignore-btn">
-                Ignorar<br><strong>(não recomendado)</strong>
-            </button>
+            <button class="btn-danger-back" id="danger-back-btn"><strong>Voltar</strong></button>
+            <button class="btn-danger-ignore" id="danger-ignore-btn">Ignorar<br><strong>(não recomendado)</strong></button>
         </div>
     `;
-
-    //action
     document.getElementById("danger-back-btn").onclick = () => {
-      chrome.tabs.update({ url: "https://www.google.com" }, () => {
-        showSecureScreen();
-        window.close();
-      });
+      chrome.tabs.update({ url: "https://www.google.com" }, () =>
+        window.close(),
+      );
     };
-
-    document.getElementById("danger-ignore-btn").onclick = () => {
-      window.close();
-    };
+    document.getElementById("danger-ignore-btn").onclick = () => window.close();
   }
 
-  // TELA FEEDBACK
   function showFeedbackScreen() {
     addBackButton();
     mainIcon.src = "images/svg/shield-feedback-128.svg";
@@ -193,76 +171,65 @@ document.addEventListener("DOMContentLoaded", function () {
     statusBadge.className = "status-badge feedback";
     infoBox.className = "contribution-box feedback";
     innerContent.innerHTML = `
-            <div class="contribution-content">
-                <div style="color: #000000; margin-bottom: 5px; font-size: 12px; font-weight: 500;">
-                    Ajude a Comunidade. Qual o status correto deste site?
-                </div>
-                <div class="button-group">
-                    <button class="report-choice-btn btn-fake" id="report-fake-btn">Reportar como<br><strong>SITE FALSO</strong></button>
-                    <button class="report-choice-btn btn-secure" id="report-secure-btn">Reportar como<br><strong>SITE SEGURO</strong></button>
-                </div>
-                <div class="tiny-footer-text">Seu voto é anônimo e ajuda a treinar nosso modelo analítico</div>
+        <div class="contribution-content">
+            <div style="color: #000000; margin-bottom: 5px; font-size: 12px; font-weight: 500;">
+                Ajude a Comunidade. Qual o status correto deste site?
             </div>
-        `;
-    document.getElementById("report-fake-btn").onclick = () =>
-      realizarReporte(1);
-    document.getElementById("report-secure-btn").onclick = () =>
-      realizarReporte(-1);
+            <div class="button-group">
+                <button class="report-choice-btn btn-fake" id="report-fake-btn">Reportar como<br><strong>SITE FALSO</strong></button>
+                <button class="report-choice-btn btn-secure" id="report-secure-btn">Reportar como<br><strong>SITE SEGURO</strong></button>
+            </div>
+            <div class="tiny-footer-text">Seu voto é anônimo e ajuda a treinar nosso modelo analítico</div>
+        </div>
+    `;
+    document.getElementById("report-fake-btn").onclick = (e) =>
+      realizarReporte(1, e.currentTarget);
+    document.getElementById("report-secure-btn").onclick = (e) =>
+      realizarReporte(-1, e.currentTarget);
   }
 
-  // func SUCCESS
   function showSuccessMessage(type) {
-    let title = "";
-    let message = "";
-    let btnText = "Concluir";
-    let isExitBtn = false;
+    let title =
+      type === "fake" || type === "suspect"
+        ? "✔ Reporte registrado!"
+        : "✔ Confirmação registrada!";
+    let message =
+      type === "fake" || type === "suspect"
+        ? "Obrigado por colaborar. Este site foi marcado em nossa base de dados."
+        : "Obrigado por confirmar que este site é seguro.";
+    let btnText =
+      type === "fake" || type === "suspect" ? "Sair deste site" : "Concluir";
 
-    if (type === "fake" || type === "suspect") {
-      title = "✔ Reporte registrado!";
-      message =
-        "Obrigado por colaborar. Este site foi marcado em nossa base de dados.";
-      btnText = "Sair deste site";
-      isExitBtn = true;
-    } else {
-      title = "✔ Confirmação registrada!";
-      message = "Obrigado por confirmar que este site é seguro.";
-      btnText = "Concluir";
-      isExitBtn = false;
-    }
+    // Heurística de Nielsen: Consistência e Visibilidade do Status do Sistema
+    // Ajusta o painel principal e escudo para refletir o status de sucesso neutro, evitando fundos vermelhos/amarelos residuais
+    mainIcon.src = "images/svg/shield-active-128.svg";
+    statusBadge.textContent = "Ação Concluída!";
+    statusBadge.className = "status-badge secure";
+    infoBox.className = "contribution-box secure";
+    boxTitle.style.display = "none";
 
     innerContent.innerHTML = `
         <div class="contribution-content" style="min-height: 100px;">
-            <div style="color: #2e7d32; font-size: 15px; font-weight: bold; margin-bottom: 10px;">
-                ${title}
-            </div>
-            <div style="color: #000000; font-size: 13px; line-height: 1.4;">
-                ${message}
-            </div>
-            <button class="report-btn" style="background-color: #d9d9d9; margin-top: 15px;" id="success-action-btn">
+            <div style="color: #2e7d32; font-size: 15px; font-weight: bold; margin-bottom: 10px;">${title}</div>
+            <div style="color: #000000; font-size: 13px; line-height: 1.4;">${message}</div>
+            <button class="report-btn" style="background-color: ${type === "fake" || type === "suspect" ? "#f04646" : "#d9d9d9"}; color: ${type === "fake" || type === "suspect" ? "#ffffff" : "#000000"}; margin-top: 15px;" id="success-action-btn">
                 ${btnText}
             </button>
         </div>
     `;
 
-    const actionBtn = document.getElementById("success-action-btn");
-
-    if (isExitBtn) {
-      actionBtn.style.backgroundColor = "#f04646";
-      actionBtn.style.color = "#ffffff";
-
-      actionBtn.onclick = () => {
-        chrome.tabs.update({ url: "https://www.google.com" }, () => {
-          chrome.action.setBadgeText({ text: "" });
-          showSecureScreen();
-          window.close();
-        });
-      };
-    } else {
-      actionBtn.onclick = showSecureScreen;
-    }
+    document.getElementById("success-action-btn").onclick = () => {
+      if (type === "fake" || type === "suspect") {
+        chrome.tabs.update({ url: "https://www.google.com" }, () =>
+          window.close(),
+        );
+      } else {
+        showSecureScreen();
+      }
+    };
+    atualizarContadorUI();
   }
 
-  // NAVEGAÇÃO
   function addBackButton() {
     if (!document.getElementById("btn-back")) {
       const btn = document.createElement("button");
@@ -270,8 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
       btn.className = "back-button";
       btn.innerHTML = "←";
       btn.onclick = showSecureScreen;
-      const mainContent = document.getElementById("content-area");
-      mainContent.prepend(btn);
+      document.getElementById("content-area").prepend(btn);
     }
   }
 
@@ -280,13 +246,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (btn) btn.remove();
   }
 
-  //TOGGLE LOGIC
   toggle.addEventListener("change", function () {
     const isActive = this.checked;
     chrome.storage.local.set({ protectionActive: isActive }, () => {
-      if (!isActive) {
-        chrome.action.setBadgeText({ text: "" });
-      }
+      if (!isActive) chrome.action.setBadgeText({ text: "" });
       updateDisplayState();
     });
   });

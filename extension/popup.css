@@ -5,245 +5,244 @@
 
 /*body*/
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    width: 350px;
-    height: 400px; 
-    background-color: #ffffff;
-    color: #000000;
-    overflow: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 350px;
+  height: 430px; /* Altura padronizada para caber tudo sem apertar */
+  background-color: #ffffff;
+  color: #000000;
+  display: flex; /* Adicionado para flexibilidade */
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: none !important;
 }
 .container {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
 }
 
 .header {
-    padding: 8px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+  padding: 8px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
 .logo-img {
-    width: 25px;
+  width: 25px;
 }
 
 .logo-text {
-    font-family: 'Righteous', sans-serif; 
-    color: #F04646;
-    font-size: 24px;
-    margin-left: -1px; 
-    letter-spacing: 0.5px;
-    font-weight: bold;
+  font-family: "Righteous", sans-serif;
+  color: #f04646;
+  font-size: 24px;
+  margin-left: -1px;
+  letter-spacing: 0.5px;
+  font-weight: bold;
 }
 
 .divider {
-    border: none;
-    border-top: 1px solid #7a6b6b;
-    margin: 0;.main-content {
-    padding: 10px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 310px; 
-    position: relative;
-}
-    width: 100%;
+  border: none;
+  border-top: 1px solid #7a6b6b;
+  margin: 0;
+  width: 100%;
 }
 
 .main-content {
-    padding: 10px 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 310px;
-    position: relative;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex-grow: 1;
+  position: relative;
 }
 
 /*Componentes Globais*/
 .shield-icon {
-    width: 80px;
-    height: 95px; 
-    margin-bottom: 15px;
+  display: block;
+  margin: 0 auto 10px auto;
+  width: auto;
+  height: 70px !important;
 }
 
 .status-badge {
-    display: inline-block;
-    padding: 8px 24px;
-    border-radius: 50px;
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    width: fit-content;
-    border: none;
+  display: inline-block;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  width: fit-content;
+  border: none;
 }
 
 .contribution-box {
-    border-radius: 15px;
-    padding: 10px;
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 80px; 
+  border-radius: 15px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 80px;
 }
 
 /*white fix*/
 .contribution-content {
-    background-color: #ffffff;
-    border-radius: 10px;
-    padding: 12px;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 60px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
 }
 
 .back-button {
-    position: absolute;
-    top: 5px;
-    left: 15px;
-    cursor: pointer;
-    font-size: 18px;
-    color: #7a6b6b;
-    background: none;
-    border: none;
-    padding: 5px;
-    z-index: 10;
+  position: absolute;
+  top: 5px;
+  left: 15px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #7a6b6b;
+  background: none;
+  border: none;
+  padding: 5px;
+  z-index: 10;
 }
 
 /*Tela Desligada*/
 .status-badge.off {
-    background-color: #d9d9d9;
-    color: #000000;
+  background-color: #d9d9d9;
+  color: #000000;
 }
 
 .contribution-box.off {
-    background-color: #d9d9d9;
+  background-color: #d9d9d9;
+  border: 2px solid #afafaf !important;
 }
 
 .contribution-box h3 {
-    margin: 0 0 10px 0;
-    font-size: 15px;
-    font-weight: bold;
+  margin: 0 0 10px 0;
+  font-size: 15px;
+  font-weight: bold;
 }
 
 .thumbsup-icon {
-    width: 50px;
-    height: auto;
-    vertical-align: text-bottom;
-    margin-left: -14px; 
-    margin-right: 5px;
+  width: 50px;
+  height: auto;
+  margin-bottom: 8px; /* Dá um leve espaçamento entre o joinha e o texto abaixo */
 }
 
 /* Tela Segura */
 .status-badge.secure {
-    background-color: #D4F7D4;
-    color: #000000;
+  background-color: #d4f7d4;
+  color: #000000;
 }
 
 .contribution-box.secure {
-    background-color: #d4f7d4;
+  background-color: #d4f7d4;
+  border: 2px solid #21c700 !important;
 }
 
 .report-btn {
-    background-color: #F7E96D;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    color: #000000;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 5px;
-    width: 100%;
+  background-color: #f7e96d;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  color: #000000;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 5px;
+  width: 100%;
 }
 
 /*Tela Feedback*/
 .status-badge.feedback {
-    background-color: #2196F3;
-    color: #000000;
+  background-color: #2196f3;
+  color: #000000;
 }
 
 .contribution-box.feedback {
-    background-color: #90CAF9;
+  background-color: #90caf9;
+  border: 2px solid #2289ff !important;
 }
 
 .button-group {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    margin: 8px 0;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin: 8px 0;
 }
 
 .report-choice-btn {
-    flex: 1;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 5px;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1.2;
-    outline: none;
-    text-decoration: none;
-    white-space: nowrap;
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 5px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+  outline: none;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .btn-fake {
-    background-color: #B71C1C;
+  background-color: #b71c1c;
 }
 
 .btn-secure {
-    background-color: #2196F3;
+  background-color: #2196f3;
 }
 
 .report-choice-btn strong {
-    font-size: 12px;
+  font-size: 12px;
 }
 
 .tiny-footer-text {
-    font-size: 9px;
-    color: #555;
-    margin-top: 8px;
+  font-size: 9px;
+  color: #555;
+  margin-top: 8px;
 }
 
 .text-success {
-    color: #2e7d32;
-    font-weight: bold;
+  color: #2e7d32;
+  font-weight: bold;
 }
 
 /*Footer e Toggle*/
 .footer {
-    padding: 8px 20px; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
+  padding: 10px 20px 6px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 .toggle-label {
-    font-size: 18px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 26px;
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
 }
 
 .switch input {
@@ -253,33 +252,36 @@ body {
 }
 
 .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #e0e0e0;
-    transition: .4s;
-    border: 1px solid #ccc;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e0e0e0;
+  transition: 0.4s;
+  border: 1px solid #ccc;
 }
 
 .slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .4s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 input:checked + .slider {
-    background-color: #52c47a; 
-    border-color: #52c47a;
+  background-color: #52c47a;
+  border-color: #52c47a;
 }
 
 input:checked + .slider:before {
-    transform: translateX(18px);
+  transform: translateX(16px);
 }
 
 .slider.round {
@@ -293,117 +295,193 @@ input:checked + .slider:before {
 /* Tela Suspeito */
 /* Badgestatus */
 .status-badge.suspect {
-    background-color: #f7e96d;
-    color: #000000;
+  background-color: #f7e96d;
+  color: #000000;
 }
 
 .contribution-box.suspect {
-    background-color: #fff9c4;
-    justify-content: space-around;
-    padding: 15px;
+  background-color: #fff9c4;
+  justify-content: space-around;
+  border: 2px solid #ffb222 !important;
+
+  padding: 15px;
 }
 
 .suspect-text {
-    font-size: 15px;
-    font-weight: bold;
-    color: #000000;
-    margin-bottom: 5px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 5px;
 }
 
 .suspect-button-group {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    justify-content: center;
-    margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
 }
 
 /*Report Tela Suspeito*/
 .suspect-choice-btn {
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    color: #000000;
-    font-weight: bold;
-    font-size: 13px;
-    cursor: pointer;
-    flex: 1; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    line-height: 1.2;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  color: #000000;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+  flex-direction: column;
 }
 
 /*Cores dos botões*/
 .btn-choice-secure {
-    background-color: #52c47a; 
+  background-color: #52c47a;
 }
 
 .btn-choice-suspect {
-    background-color: #f7e96d; 
+  background-color: #f7e96d;
 }
 
 .suspect-choice-btn:hover {
-    filter: brightness(0.9);
+  filter: brightness(0.9);
 }
 
 /*Tela Perigo*/
 /*Badge Vermelho*/
 .status-badge.danger {
-    background-color: #B71C1C;
-    color: #ffffff;
-    line-height: 1.2;
+  background-color: #b71c1c;
+  color: #ffffff;
+  line-height: 1.2;
 }
 
 .contribution-box.danger {
-    background-color: #FFCDD2;
-    padding: 15px;
+  background-color: #ffcdd2;
+  border: 2px solid #ff7d7d !important;
+
+  padding: 15px;
 }
 
 .danger-text {
-    font-size: 16px;
-    font-weight: 500;
-    color: #000000;
-    margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+  margin-bottom: 12px;
 }
 
 /*botões tela Perigo */
 .danger-button-group {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
 /*voltar*/
 .btn-danger-back {
-    background-color: #B71C1C;
-    color: #ffffff;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-weight: bold;
-    font-size: 20px;
-    cursor: pointer;
-    flex: 1.1;
+  background-color: #b71c1c;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
+  flex: 1.1;
 }
 
 /*ignorar*/
 .btn-danger-ignore {
-    background-color: #BDBDBD;
-    color: #000000;
-    border: none;
-    border-radius: 12px;
-    padding: 8px 10px;
-    font-size: 11px;
-    cursor: pointer;
-    flex: 1;
-    line-height: 1.1;
+  background-color: #bdbdbd;
+  color: #000000;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  flex: 1;
+  line-height: 1.1;
+  flex-direction: column;
 }
 
 .btn-danger-ignore strong {
-    display: block;
-    font-size: 10px;
+  display: block;
+  font-size: 10px;
+}
+
+.report-btn,
+.suspect-choice-btn,
+.btn-danger-back,
+.btn-danger-ignore,
+.report-choice-btn {
+  height: 48px !important; /* Altura padrão para clique fácil */
+  border-radius: 12px !important; /* Curvatura padrão */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.2s ease;
+  width: 100%; /* Botões ocupam toda a largura da info-box */
+  margin-top: 10px; /* Espaçamento superior entre botões */
+}
+
+/* Espaçamento interno para os textos do Pedro */
+.contribution-content p {
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.phishio-tooltip .tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: #333333;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 8px;
+  position: absolute;
+  z-index: 100;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Seta apontando para baixo */
+.phishio-tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333333 transparent transparent transparent;
+}
+
+.phishio-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+#info-box.contribution-box {
+  margin: 0 auto 10px auto; /* Centraliza e dá margem inferior */
+  width: 90%; /* Ocupa a maior parte da largura para evitar 'aperto' */
+  background-color: #ffffff;
+  border-radius: 12px; /* Cantos levemente arredondados */
+  padding: 12px; /* Mais espaço interno para os componentes respirarem */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px; /* Garante espaço para mensagens de erro/sucesso */
 }
