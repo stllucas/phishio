@@ -54,8 +54,7 @@ except Exception as e:
 class CheckUrlRequest(BaseModel):
     """Payload esperado para a verificação de URL."""
 
-    url: str = Field(...,
-                     description="A URL completa da página a ser analisada.")
+    url: str = Field(..., description="A URL completa da página a ser analisada.")
     dom: str = Field(..., description="O conteúdo textual (DOM) da página.")
 
 
@@ -71,8 +70,7 @@ class CheckUrlResponse(BaseModel):
 class ReportRequest(BaseModel):
     """Payload esperado para o reporte de uma URL pelo usuário."""
 
-    url: str = Field(...,
-                     description="A URL da página que está sendo reportada.")
+    url: str = Field(..., description="A URL da página que está sendo reportada.")
     voto: int = Field(
         ...,
         description="O voto do usuário: 1 para phishing, -1 para seguro.",
@@ -84,13 +82,11 @@ class ReportRequest(BaseModel):
 class ReportResponse(BaseModel):
     """Resposta do reporte de URL."""
 
-    message: str = Field(...,
-                         description="Mensagem de confirmação do reporte.")
+    message: str = Field(..., description="Mensagem de confirmação do reporte.")
     new_status: str = Field(
         ..., description="O novo status operacional da URL após o reporte."
     )
-    new_score: float = Field(...,
-                             description="O novo score de consenso da URL.")
+    new_score: float = Field(..., description="O novo score de consenso da URL.")
 
 
 # --- Funções Auxiliares ---
@@ -106,13 +102,14 @@ def generate_firestore_id(url: str) -> str:
     u = u.replace("https://", "").replace("http://", "").replace("www.", "")
 
     # 3. Remover parâmetros de busca e fragmentos
-    u = u.split('?')[0].split('#')[0]
+    u = u.split("?")[0].split("#")[0]
 
     # 4. Remover barra final para unicidade
-    u = u.rstrip('/')
+    u = u.rstrip("/")
 
     # 5. SHA-256 (Deve ser igual ao Unify_collections.py)
     return hashlib.sha256(u.encode("utf-8")).hexdigest()
+
 
 # --- Endpoint Principal de Análise ---
 
@@ -121,16 +118,18 @@ def generate_firestore_id(url: str) -> str:
 async def check_url(request: CheckUrlRequest):
     if not db:
         raise HTTPException(
-            status_code=503, detail="Serviço de banco de dados indisponível.")
+            status_code=503, detail="Serviço de banco de dados indisponível."
+        )
 
-# --- Passo A e B: Consulta ao Cache de Reputação (Firestore) ---
+    # --- Passo A e B: Consulta ao Cache de Reputação (Firestore) ---
     try:
         # 1. Gera o ID SHA-256
         doc_id = generate_firestore_id(request.url)
 
         # Log depuração: Crucial para ver no console qual hash a API está gerando
         logger.info(
-            f"[DEBUG] Buscando no Firestore ID: {doc_id} para URL: {request.url}")
+            f"[DEBUG] Buscando no Firestore ID: {doc_id} para URL: {request.url}"
+        )
 
         doc_ref = db.collection("reputacao_urls_v2").document(doc_id)
         doc = await doc_ref.get()
@@ -142,18 +141,19 @@ async def check_url(request: CheckUrlRequest):
             status_banco = data.get("status", "safe")
 
             logger.info(
-                f"[DEBUG] Documento encontrado no Cache! Status: {status_banco}, Score: {score}")
+                f"[DEBUG] Documento encontrado no Cache! Status: {status_banco}, Score: {score}"
+            )
 
             # Prioridade 1: Verificação de Autoridade (Sistema)
             if is_verified:
                 logger.info(
-                    f"Cache HIT (Autoridade): {request.url} - Veredito: {status_banco}")
+                    f"Cache HIT (Autoridade): {request.url} - Veredito: {status_banco}"
+                )
                 return CheckUrlResponse(status=status_banco, score=score)
 
             # Prioridade 2: Consenso Comunitário de Perigo
             if score >= 15:
-                logger.info(
-                    f"Cache HIT (Comunidade - Phishing): {request.url}")
+                logger.info(f"Cache HIT (Comunidade - Phishing): {request.url}")
                 return CheckUrlResponse(status="phishing", score=score)
 
             # Prioridade 3: Consenso Comunitário de Segurança Explícita
@@ -163,11 +163,13 @@ async def check_url(request: CheckUrlRequest):
 
             # ESTADO NEUTRO (0 <= score < 15): O fluxo continua para o Motor Vetorial
             logger.info(
-                f"URL em Estado Neutro (Score: {score}). Acionando análise profunda...")
+                f"URL em Estado Neutro (Score: {score}). Acionando análise profunda..."
+            )
         else:
             # Log de aviso/debug: Confirma se o Google simplesmente NÃO existe no banco
             logger.warning(
-                f"[DEBUG] Cache MISS Total: O ID {doc_id} não existe na coleção 'reputacao_urls_v2'.")
+                f"[DEBUG] Cache MISS Total: O ID {doc_id} não existe na coleção 'reputacao_urls_v2'."
+            )
 
     except Exception as e:
         logger.error(f"Erro na consulta de cache para {request.url}: {e}")
@@ -200,84 +202,60 @@ async def check_url(request: CheckUrlRequest):
     except Exception as e:
         logger.error(f"Erro crítico no motor vetorial: {e}")
         raise HTTPException(
-            status_code=500, detail="Erro interno durante a análise de conteúdo.")
+            status_code=500, detail="Erro interno durante a análise de conteúdo."
+        )
 
 
 # --- Endpoint de Crowdsourcing (Reporte de URL) ---
 
 
-@app.post("/reportar_url", response_model=ReportResponse)
-async def reportar_url(request: ReportRequest):
+# 1. Certifique-se de que o modelo está assim no topo:
+class ReportModel(BaseModel):
+    url: str
+    voto: int  # 1 para phishing, -1 para seguro
+
+
+@app.post("/reportar_url")
+async def reportar_url(dados: ReportModel):
     """
     Permite que usuários reportem o status de uma URL, contribuindo para o consenso.
-    Aplica a lógica de consenso ponderado descrita na Seção 5.3 do TCC.
+    Aplica a lógica de consenso ponderado.
     """
     if not db:
-        raise HTTPException(
-            status_code=503,
-            detail="Serviço indisponível: Conexão com o banco de dados falhou.",
-        )
+        raise HTTPException(status_code=503, detail="Banco de dados indisponível.")
 
-    # Inicia uma transação assíncrona no Firestore para garantir atomicidade
-    # Isso é crucial para evitar condições de corrida ao atualizar o score de consenso.
-    transaction = db.transaction()
-    doc_ref = db.collection("reputacao_urls_v2").document(
-        generate_firestore_id(request.url)
-    )
+    # Gera o ID usando a função de limpeza que você já tem no main.py
+    url_id = generate_firestore_id(dados.url)
+    doc_ref = db.collection("reputacao_urls_v2").document(url_id)
 
-    @firestore.async_transactional
-    async def update_consensus_score(transaction, doc_ref, voto):
-        """
-        Atualiza o score de consenso e o total de votos para uma URL.
-        """
-        snapshot = await doc_ref.get(transaction=transaction)
-
-        current_score = 0
-        total_votes = 0
-
-        if snapshot.exists:
-            data = snapshot.to_dict()
-            current_score = data.get("consensus_score", 0)
-            total_votes = data.get("total_votos", 0)
-
-        # Lógica simplificada: O score é incrementado ou decrementado pelo voto (-1 ou 1).
-        new_score = current_score + voto
-        new_total_votes = total_votes + 1
-
-        transaction.set(
-            doc_ref,
-            {
-                "consensus_score": new_score,
-                "total_votos": new_total_votes,
-                "last_updated": firestore.SERVER_TIMESTAMP,
-            },
-        )
-        return new_score
+    # Lógica de incremento para os campos específicos do seu Firebase
+    voto_p = 1 if dados.voto == 1 else 0
+    voto_s = 1 if dados.voto == -1 else 0
 
     try:
-        final_score = await update_consensus_score(transaction, doc_ref, request.voto)
-
-        # Determina o novo status operacional da URL com base nas regras do TCC (Seção 5.3.2)
-        new_status = ""
-        if final_score <= 0:
-            new_status = "safe"  # Confiável
-        elif 0 < final_score < 15:
-            new_status = "suspicious"  # Suspeito
-        else:  # final_score >= 15
-            new_status = "phishing"  # Perigoso
-
-        logger.info(
-            f"URL {request.url} reportada. Novo score: {final_score}, Status: {new_status}"
-        )
-        return ReportResponse(
-            message="Reporte recebido com sucesso. A reputação da URL foi atualizada.",
-            new_status=new_status,
-            new_score=final_score,
+        # Atualização direta e atômica
+        await doc_ref.set(
+            {
+                "url": dados.url,
+                "total_votos": firestore.Increment(1),
+                "votos_phishing": firestore.Increment(voto_p),
+                "votos_seguro": firestore.Increment(voto_s),
+                "consensus_score": firestore.Increment(dados.voto),
+                "last_updated": firestore.SERVER_TIMESTAMP,
+            },
+            merge=True,
         )
 
+        # Lógica de maturidade (Vira o status se houver consenso)
+        doc = await doc_ref.get()
+        if doc.exists:
+            score = doc.to_dict().get("consensus_score", 0)
+            if score >= 15:
+                await doc_ref.update({"status": "phishing"})
+            elif score < 0:
+                await doc_ref.update({"status": "safe"})
+
+        return {"success": True, "message": "Reporte processado."}
     except Exception as e:
-        logger.error(
-            f"Erro ao processar o reporte para a URL {request.url}: {e}")
-        raise HTTPException(
-            status_code=500, detail="Erro interno ao processar o reporte."
-        )
+        logger.error(f"Erro no reporte: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno.")
