@@ -1,57 +1,87 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const toggle = document.getElementById('protection-toggle');
-    const mainIcon = document.getElementById('main-icon');
-    const statusBadge = document.getElementById('status-badge');
-    const infoBox = document.getElementById('info-box');
-    const boxTitle = document.getElementById('box-title');
-    const innerContent = document.getElementById('inner-content');
-    const container = document.querySelector('.container');
+document.addEventListener("DOMContentLoaded", function () {
+  const toggle = document.getElementById("protection-toggle");
+  const mainIcon = document.getElementById("main-icon");
+  const statusBadge = document.getElementById("status-badge");
+  const infoBox = document.getElementById("info-box");
+  const boxTitle = document.getElementById("box-title");
+  const innerContent = document.getElementById("inner-content");
 
-    // sites pra testar
-    const sitesSuspeitos = ["github.com", "teste.com"];
-    const sitesPerigosos = ["malicioso.com", "phishing.net"];
+  function updateDisplayState() {
+    chrome.storage.local.get(["protectionActive"], function (result) {
+      if (!result.protectionActive) {
+        toggle.checked = false;
+        showOffScreen();
+      } else {
+        toggle.checked = true;
 
-    // SWITCH TELAS
-    function updateDisplayState() {
-        chrome.storage.local.get(['protectionActive'], function(result) {
-            if (!result.protectionActive) {
-                toggle.checked = false;
-                showOffScreen();
-            } else {
-                toggle.checked = true;
-                chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-                    if (tabs[0] && tabs[0].url) {
-                        try {
-                            const url = new URL(tabs[0].url).hostname;
+        // PEGA A ABA ATUAL
+        chrome.tabs.query(
+          { active: true, currentWindow: true },
+          function (tabs) {
+            if (tabs[0]) {
+              const tabId = tabs[0].id;
 
-                            if (sitesPerigosos.includes(url)) {
-                                showPerigoScreen();
-                            } else if (sitesSuspeitos.includes(url)) {
-                                showSuspeitoScreen();
-                            } else {
-                                showSecureScreen();
-                            }
-                        } catch (e) {
-                            showSecureScreen();
-                        }
-                    }
-                });
+              // BUSCA O VEREDITO REAL DO BACKEND
+              chrome.storage.local.get([`status_${tabId}`], function (data) {
+                const status = data[`status_${tabId}`] || "safe";
+
+                if (status === "phishing") {
+                  showPerigoScreen();
+                } else if (status === "suspect") {
+                  showSuspeitoScreen();
+                } else {
+                  showSecureScreen();
+                }
+              });
             }
-        });
-    }
+          },
+        );
+      }
+    });
+  }
 
-    // INICIALIZAÇÃO
-    updateDisplayState();
+  function realizarReporte(voto) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const urlAtual = tabs[0].url;
 
-    // TELA DESLIGADO 
-    function showOffScreen() {
-        removeBackButton();
-        mainIcon.src = "images/svg/shield-inactive-128.svg";
-        statusBadge.textContent = "Proteção Phishio Desligada";
-        statusBadge.className = "status-badge off";
-        infoBox.className = "contribution-box off";
-        boxTitle.style.display = 'none'; 
-        innerContent.innerHTML = `
+      // Envia para o background.js processar
+      chrome.runtime.sendMessage(
+        {
+          action: "reportUrl",
+          url: urlAtual,
+          vote: voto, // 1 para phishing, -1 para seguro
+        },
+        (response) => {
+          if (response && response.success) {
+            showSuccessMessage(voto === 1 ? "fake" : "secure");
+          }
+        },
+      );
+    });
+  }
+
+  // Função para buscar o total de joinhas e colocar no HTML
+  function atualizarContadorUI() {
+    chrome.storage.local.get(["totalAvaliacoes"], (result) => {
+      const countElement = document.getElementById("eval-count");
+      if (countElement) {
+        countElement.textContent = result.totalAvaliacoes || 0;
+      }
+    });
+  }
+
+  // INICIALIZAÇÃO
+  updateDisplayState();
+
+  // TELA DESLIGADO
+  function showOffScreen() {
+    removeBackButton();
+    mainIcon.src = "images/svg/shield-inactive-128.svg";
+    statusBadge.textContent = "Proteção Phishio Desligada";
+    statusBadge.className = "status-badge off";
+    infoBox.className = "contribution-box off";
+    boxTitle.style.display = "none";
+    innerContent.innerHTML = `
             <div class="contribution-content">
                 <p style="margin: 0; font-size: 16px; color: #9c6363;">
                     Você ajudou a avaliar <span id="eval-count">[x]</span> 
@@ -60,17 +90,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </p>
             </div>
         `;
-    }
+    atualizarContadorUI();
+  }
 
-    //TELA SEGURA 
-    function showSecureScreen() {
-        removeBackButton();
-        mainIcon.src = "images/svg/shield-active-128.svg";
-        statusBadge.textContent = "Este site parece seguro";
-        statusBadge.className = "status-badge secure"; 
-        infoBox.className = "contribution-box secure";
-        boxTitle.style.display = 'none';
-        innerContent.innerHTML = `
+  //TELA SEGURA
+  function showSecureScreen() {
+    removeBackButton();
+    mainIcon.src = "images/svg/shield-active-128.svg";
+    statusBadge.textContent = "Este site parece seguro";
+    statusBadge.className = "status-badge secure";
+    infoBox.className = "contribution-box secure";
+    boxTitle.style.display = "none";
+    innerContent.innerHTML = `
             <div class="contribution-content">
                 <div style="color: #000000; font-weight: 500; margin-bottom: 8px;">
                     Análise concluída<br>
@@ -79,20 +110,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button class="report-btn" id="go-to-feedback">Reportar site suspeito</button>
             </div>
         `;
-        document.getElementById('go-to-feedback').onclick = showFeedbackScreen;
-    }
+    document.getElementById("go-to-feedback").onclick = showFeedbackScreen;
+  }
 
-//TELA SUSPEITA
-function showSuspeitoScreen() {
+  //TELA SUSPEITA
+  function showSuspeitoScreen() {
     removeBackButton();
 
     mainIcon.src = "images/svg/shield-suspicious-128.svg";
-    
+
     statusBadge.textContent = "Tenha cautela, este site pode ser perigoso.";
-    statusBadge.className = "status-badge suspect"; 
-    
+    statusBadge.className = "status-badge suspect";
+
     infoBox.className = "contribution-box suspect";
-    boxTitle.style.display = 'none';
+    boxTitle.style.display = "none";
 
     innerContent.innerHTML = `
         <div class="suspect-text">
@@ -108,22 +139,24 @@ function showSuspeitoScreen() {
         </div>
     `;
 
-    document.getElementById('confirm-secure-choice').onclick = () => showSuccessMessage('secure');
-    document.getElementById('confirm-suspect-choice').onclick = () => showSuccessMessage('suspect');
-}
+    document.getElementById("confirm-secure-choice").onclick = () =>
+      realizarReporte(-1);
+    document.getElementById("confirm-suspect-choice").onclick = () =>
+      realizarReporte(1);
+  }
 
-    // TELA PERIGO 
-    function showPerigoScreen() {
+  // TELA PERIGO
+  function showPerigoScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-danger-128.svg";
-    
+
     //badge
     statusBadge.innerHTML = "CUIDADO!<br>PHISHING DETECTADO.";
-    statusBadge.className = "status-badge danger"; 
-    
+    statusBadge.className = "status-badge danger";
+
     //alert
     infoBox.className = "contribution-box danger";
-    boxTitle.style.display = 'none';
+    boxTitle.style.display = "none";
 
     innerContent.innerHTML = `
         <div class="danger-text">
@@ -140,26 +173,26 @@ function showSuspeitoScreen() {
     `;
 
     //action
-    document.getElementById('danger-back-btn').onclick = () => {
-        chrome.tabs.update({ url: "https://www.google.com" }, () => {
-            showSecureScreen();
-            window.close();
-        });
-    };
-
-    document.getElementById('danger-ignore-btn').onclick = () => {
+    document.getElementById("danger-back-btn").onclick = () => {
+      chrome.tabs.update({ url: "https://www.google.com" }, () => {
+        showSecureScreen();
         window.close();
+      });
     };
-}
 
-    // TELA FEEDBACK
-    function showFeedbackScreen() {
-        addBackButton();
-        mainIcon.src = "images/svg/shield-feedback-128.svg";
-        statusBadge.textContent = "Encontrou um erro?";
-        statusBadge.className = "status-badge feedback";
-        infoBox.className = "contribution-box feedback";
-        innerContent.innerHTML = `
+    document.getElementById("danger-ignore-btn").onclick = () => {
+      window.close();
+    };
+  }
+
+  // TELA FEEDBACK
+  function showFeedbackScreen() {
+    addBackButton();
+    mainIcon.src = "images/svg/shield-feedback-128.svg";
+    statusBadge.textContent = "Encontrou um erro?";
+    statusBadge.className = "status-badge feedback";
+    infoBox.className = "contribution-box feedback";
+    innerContent.innerHTML = `
             <div class="contribution-content">
                 <div style="color: #000000; margin-bottom: 5px; font-size: 12px; font-weight: 500;">
                     Ajude a Comunidade. Qual o status correto deste site?
@@ -171,27 +204,30 @@ function showSuspeitoScreen() {
                 <div class="tiny-footer-text">Seu voto é anônimo e ajuda a treinar nosso modelo analítico</div>
             </div>
         `;
-        document.getElementById('report-fake-btn').onclick = () => showSuccessMessage('fake');
-        document.getElementById('report-secure-btn').onclick = () => showSuccessMessage('secure');
-    }
+    document.getElementById("report-fake-btn").onclick = () =>
+      realizarReporte(1);
+    document.getElementById("report-secure-btn").onclick = () =>
+      realizarReporte(-1);
+  }
 
-    // func SUCCESS
-    function showSuccessMessage(type) {
+  // func SUCCESS
+  function showSuccessMessage(type) {
     let title = "";
     let message = "";
     let btnText = "Concluir";
     let isExitBtn = false;
 
-    if (type === 'fake' || type === 'suspect') {
-        title = "✔ Reporte registrado!";
-        message = "Obrigado por colaborar. Este site foi marcado em nossa base de dados.";
-        btnText = "Sair deste site";
-        isExitBtn = true;
+    if (type === "fake" || type === "suspect") {
+      title = "✔ Reporte registrado!";
+      message =
+        "Obrigado por colaborar. Este site foi marcado em nossa base de dados.";
+      btnText = "Sair deste site";
+      isExitBtn = true;
     } else {
-        title = "✔ Confirmação registrada!";
-        message = "Obrigado por confirmar que este site é seguro.";
-        btnText = "Concluir";
-        isExitBtn = false;
+      title = "✔ Confirmação registrada!";
+      message = "Obrigado por confirmar que este site é seguro.";
+      btnText = "Concluir";
+      isExitBtn = false;
     }
 
     innerContent.innerHTML = `
@@ -208,50 +244,50 @@ function showSuspeitoScreen() {
         </div>
     `;
 
-    const actionBtn = document.getElementById('success-action-btn');
+    const actionBtn = document.getElementById("success-action-btn");
 
     if (isExitBtn) {
-    actionBtn.style.backgroundColor = "#f04646";
-    actionBtn.style.color = "#ffffff";
-    
-    actionBtn.onclick = () => {
+      actionBtn.style.backgroundColor = "#f04646";
+      actionBtn.style.color = "#ffffff";
+
+      actionBtn.onclick = () => {
         chrome.tabs.update({ url: "https://www.google.com" }, () => {
-            chrome.action.setBadgeText({ text: "" });
-            showSecureScreen();
-            window.close();
+          chrome.action.setBadgeText({ text: "" });
+          showSecureScreen();
+          window.close();
         });
-    };
+      };
     } else {
-        actionBtn.onclick = showSecureScreen;
-        }
-    }  
-
-    // NAVEGAÇÃO
-    function addBackButton() {
-        if (!document.getElementById('btn-back')) {
-            const btn = document.createElement('button');
-            btn.id = 'btn-back';
-            btn.className = 'back-button';
-            btn.innerHTML = '←'; 
-            btn.onclick = showSecureScreen;
-            const mainContent = document.getElementById('content-area');
-            mainContent.prepend(btn);
-        }
+      actionBtn.onclick = showSecureScreen;
     }
+  }
 
-    function removeBackButton() {
-        const btn = document.getElementById('btn-back');
-        if (btn) btn.remove();
+  // NAVEGAÇÃO
+  function addBackButton() {
+    if (!document.getElementById("btn-back")) {
+      const btn = document.createElement("button");
+      btn.id = "btn-back";
+      btn.className = "back-button";
+      btn.innerHTML = "←";
+      btn.onclick = showSecureScreen;
+      const mainContent = document.getElementById("content-area");
+      mainContent.prepend(btn);
     }
+  }
 
-    //TOGGLE LOGIC 
-    toggle.addEventListener('change', function() {
+  function removeBackButton() {
+    const btn = document.getElementById("btn-back");
+    if (btn) btn.remove();
+  }
+
+  //TOGGLE LOGIC
+  toggle.addEventListener("change", function () {
     const isActive = this.checked;
     chrome.storage.local.set({ protectionActive: isActive }, () => {
-        if (!isActive) {
-            chrome.action.setBadgeText({ text: "" });
-        }
-        updateDisplayState();
+      if (!isActive) {
+        chrome.action.setBadgeText({ text: "" });
+      }
+      updateDisplayState();
     });
-});
+  });
 });
