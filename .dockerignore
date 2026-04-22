@@ -1,7 +1,22 @@
+cat <<EOF > /var/www/phishio/.dockerignore
+# Pastas pesadas que não pertencem ao servidor
+maintenance/
 venv/
+docs/
+extension/
+.git/
+infra/
+
+# Arquivos de sistema e cache
 __pycache__/
 *.pyc
-.git/
 *.log
-ingestion_metrics.csv
+.DS_Store
+
+# Limpeza na pasta data
+# Ignora tudo que for pesado e redundante
+data/*.csv
+data/execution_log/
+data/vocabulario.json
+data/idf.json
 EOF
