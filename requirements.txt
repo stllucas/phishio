@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 google-cloud-firestore
+google-auth
 firebase-admin
 pandas
 requests
@@ -8,3 +9,5 @@ tqdm
 beautifulsoup4
 nltk
 ijson
+pydantic
+EOF
