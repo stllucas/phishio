@@ -18,3 +18,8 @@ data/*.csv
 data/execution_log/
 data/vocabulario.json
 data/idf.json
+
+# Aquivos de setup
+setup.bash
+setup.bat
+

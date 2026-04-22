@@ -8,7 +8,6 @@ DATA_DIR = BASE_PATH / 'data'
 RUNTIME_DIR = BASE_PATH / 'runtime'
 
 # --- Artefatos de Índice (Caminho Achatado na Camada WARM) ---
-# Removemos o 'processed/index' para simplificar o acesso
 DOCUMENT_MAP_PATH = DATA_DIR / 'document_map.json'
 POSTINGS_BIN_PATH = DATA_DIR / 'postings.bin'
 VOCAB_PATH        = DATA_DIR / 'vocabulario.json'
