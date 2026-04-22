@@ -1,0 +1,8 @@
+cat <<EOF > .dockerignore
+venv/
+__pycache__/
+*.pyc
+.git/
+*.log
+ingestion_metrics.csv
+EOF
