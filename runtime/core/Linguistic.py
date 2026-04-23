@@ -24,7 +24,7 @@ except nltk.downloader.DownloadError:
     nltk.download('punkt', quiet=True)
 
 # Define recursos de Processamento de Linguagem Natural (PLN)
-STOPWORDS = set(nltk.corpus.stopwords.words('portuguese'))
+STOPWORDS = set(nltk.corpus.stopwords.words('portuguese')) | {"http", "https", "www", "com", "br", "net", "org", "gov", "edu"}
 STEMMER = nltk.stem.SnowballStemmer("portuguese")
 
 
@@ -40,9 +40,11 @@ def process_text(conteudo_html: str) -> list[str]:
         logger.error(f"Erro na BeautifulSoup ao processar HTML. {e}")
         texto_limpo = ""
 
+    texto_espacado = re.sub(r'[./\-_]', ' ', texto_limpo)
+
     # 2. Normalização e Tokenização
     limpo = re.sub(
-        r'[^a-zA-ZáéíóúàèìòùãõâêîôûçÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÇ\s]', '', texto_limpo).lower()
+        r'[^a-zA-ZáéíóúàèìòùãõâêîôûçÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÇ\s]', '', texto_espacado).lower()
     tokens = limpo.split()
 
     # 3. Filtra stopwords, aplica stemming
