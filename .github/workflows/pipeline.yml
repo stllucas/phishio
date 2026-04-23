@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p runtime/secrets
           # IMPORTANTE: Manter aspas simples para não quebrar a sintaxe do JSON
-          echo '${{ secrets.FIREBASE_CREDENTIALS }}' > runtime/secrets/phishio-firebase-adminsdk.json
+          echo '${{ secrets.FIREBASE_CREDENTIALS }}' > runtime/secrets
 
       - name: Setup Mock Data for CI
         run: |
