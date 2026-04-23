@@ -224,38 +224,45 @@ class ReportModel(BaseModel):
 
 
 @app.post("/reportar_url")
-async def reportar_url(dados: ReportModel):
+async def reportar_url(request: Request, dados: ReportRequest): # Adicionado Request para pegar o IP
     """
-    Permite que usuários reportem o status de uma URL, contribuindo para o consenso.
-    Aplica a lógica de consenso ponderado.
+    Unifica Indicador 1 (Colaboração) e Indicador 2 (Confiabilidade).
+    Captura IP, localiza geograficamente e atualiza o score de consenso.
     """
     if not db:
-        raise HTTPException(
-            status_code=503, detail="Banco de dados indisponível.")
+        raise HTTPException(status_code=503, detail="Banco de dados indisponível.")
 
-    # Gera o ID usando a função de limpeza que você já tem no main.py
     url_id = generate_firestore_id(dados.url)
-    doc_ref = db.collection("reputacao_urls_v2").document(url_id)
-
-    # Lógica de incremento para os campos específicos do seu Firebase
-    voto_p = 1 if dados.voto == 1 else 0
-    voto_s = 1 if dados.voto == -1 else 0
+    
+    # 1. Captura e Geolocalização do IP (Indicador 5 e 1)
+    client_ip = request.client.host if request.client else "IP_Desconhecido"
+    geo_data = get_location_by_ip(client_ip)
 
     try:
-        # Atualização direta e atômica
-        await doc_ref.set(
-            {
-                "url": dados.url,
-                "total_votos": firestore.Increment(1),
-                "votos_phishing": firestore.Increment(voto_p),
-                "votos_seguro": firestore.Increment(voto_s),
-                "consensus_score": firestore.Increment(dados.voto),
-                "last_updated": firestore.SERVER_TIMESTAMP,
-            },
-            merge=True,
-        )
+        # A. Gravação do Rastro Geográfico (Indicador de Distribuição Geográfica)
+        await db.collection("reports_geolocalizados").add({
+            "url": dados.url,
+            "ip": client_ip,
+            "estado": geo_data.get("estado", "Desconhecido"),
+            "cidade": geo_data.get("cidade", "Desconhecido"),
+            "timestamp": datetime.now(ZoneInfo("America/Sao_Paulo"))
+        })
 
-        # Lógica de maturidade (Vira o status se houver consenso)
+        # B. Atualização do Score de Consenso (Indicador de Confiabilidade/Maturidade)
+        voto_p = 1 if dados.voto == 1 else 0
+        voto_s = 1 if dados.voto == -1 else 0
+        
+        doc_ref = db.collection("reputacao_urls_v2").document(url_id)
+        await doc_ref.set({
+            "url": dados.url,
+            "total_votos": firestore.Increment(1),
+            "votos_phishing": firestore.Increment(voto_p),
+            "votos_seguro": firestore.Increment(voto_s),
+            "consensus_score": firestore.Increment(dados.voto),
+            "last_updated": firestore.SERVER_TIMESTAMP,
+        }, merge=True)
+
+        # C. Lógica de Maturidade (Vira o status se houver consenso de 15 votos)
         doc = await doc_ref.get()
         if doc.exists:
             score = doc.to_dict().get("consensus_score", 0)
@@ -264,48 +271,9 @@ async def reportar_url(dados: ReportModel):
             elif score < 0:
                 await doc_ref.update({"status": "safe"})
 
-        return {"success": True, "message": "Reporte processado."}
-    except Exception as e:
-        logger.error(f"Erro no reporte: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno.")
-
-# --- Reporte com Geolocalização ---
-
-
-@app.post("/report")
-async def report_phishing(request: Request, payload: dict):
-    """
-    Recebe o reporte, captura o IP, localiza geograficamente e salva no Firestore.
-    """
-    if not db:
-        logger.error(
-            "Tentativa de reporte falhou: Banco de dados indisponível.")
-        raise HTTPException(
-            status_code=503, detail="Serviço de banco de dados indisponível no momento.")
-
-    try:
-        client_ip = request.client.host if request.client else "IP_Desconhecido"
-
-        geo_data = get_location_by_ip(client_ip)
-
-        report_doc = {
-            "url": payload.get("url", "url_nao_fornecida"),
-            "user_id": payload.get("user_id", "anonymous"),
-            "ip": client_ip,
-            "estado": geo_data.get("estado", "Desconhecido"),
-            "cidade": geo_data.get("cidade", "Desconhecido"),
-            "pais": geo_data.get("pais", "Desconhecido"),
-            "timestamp": datetime.now(ZoneInfo("America/Sao_Paulo"))
-        }
-
-        db.collection("reports_geolocalizados").add(report_doc)
-
-        logger.info(
-            f"Sucesso! URL reportada pelo IP: {client_ip} ({geo_data.get('estado')})")
-
-        return {"status": "Report recebido e geolocalizado com sucesso", "geo": geo_data}
+        logger.info(f"Reporte Completo: {dados.url} | IP: {client_ip} | Voto: {dados.voto}")
+        return {"success": True, "message": "Reporte e geolocalização processados com sucesso."}
 
     except Exception as e:
-        logger.error(f"[ERRO] Falha ao processar reporte geolocalizado: {e}")
-        raise HTTPException(
-            status_code=500, detail="Ocorreu um erro interno ao salvar o reporte. Tente novamente mais tarde.")
+        logger.error(f"Erro no processamento unificado: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno ao processar colaboração.")
