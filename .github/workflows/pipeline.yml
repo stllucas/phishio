@@ -43,6 +43,16 @@ jobs:
         run: |
           # FIX DO PYTHONPATH: Ensinando o Python a achar a pasta runtime e core
           PYTHONPATH=.:./runtime pytest tests/ -v
+      - name: Zip Chrome Extension
+        run: |
+          zip -r phishio_extension.zip extension/
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: phishio_extension.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   package-extension:
     runs-on: ubuntu-latest
