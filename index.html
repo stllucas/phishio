@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phishio - Detecção Colaborativa de Phishing</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <style>
+      :root {
+        --cyber-blue: #00f3ff;
+        --bg-dark: #0a0a0f;
+        --bg-card: #12121a;
+        --text-light: #e0e0e0;
+        --text-muted: #b3b3bf;
+      }
+
+      body {
+        background-color: var(--bg-dark);
+        color: var(--text-light);
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        overflow-x: hidden;
+      }
+
+      .text-muted {
+        color: var(--text-muted) !important;
+      }
+
+      .navbar {
+        background-color: rgba(10, 10, 15, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 243, 255, 0.15);
+      }
+
+      .navbar-brand {
+        color: var(--cyber-blue) !important;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+      }
+
+      .nav-link {
+        color: var(--text-light) !important;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: var(--cyber-blue) !important;
+      }
+
+      .btn-neon {
+        display: inline-block;
+        background: transparent;
+        color: var(--cyber-blue);
+        border: 2px solid var(--cyber-blue);
+        border-radius: 6px;
+        padding: 12px 30px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      }
+
+      .btn-neon:hover {
+        background: var(--cyber-blue);
+        color: var(--bg-dark);
+        box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+      }
+
+      .hero-section {
+        padding: 150px 0 100px;
+        background: radial-gradient(
+          circle at center,
+          #152238 0%,
+          var(--bg-dark) 65%
+        );
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+      }
+
+      .hero-title {
+        font-size: 3.8rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 25px;
+      }
+
+      .hero-title .highlight {
+        color: var(--cyber-blue);
+        text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+      }
+
+      .hero-subtitle {
+        font-size: 1.25rem;
+        color: var(--text-muted);
+        margin-bottom: 45px;
+        line-height: 1.6;
+      }
+
+      .features-section {
+        padding: 100px 0;
+      }
+
+      .section-header {
+        color: var(--text-light);
+        margin-bottom: 60px;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .section-header span {
+        color: var(--cyber-blue);
+      }
+
+      .cyber-card {
+        background-color: var(--bg-card);
+        border: 1px solid rgba(0, 243, 255, 0.1);
+        border-radius: 12px;
+        padding: 40px 30px;
+        height: 100%;
+        transition:
+          transform 0.3s ease,
+          border-color 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .cyber-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(0, 243, 255, 0.5);
+        box-shadow: 0 10px 30px rgba(0, 243, 255, 0.15);
+      }
+
+      .card-icon {
+        font-size: 3rem;
+        color: var(--cyber-blue);
+        margin-bottom: 25px;
+        display: inline-block;
+      }
+
+      .card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #ffffff;
+      }
+
+      .install-section {
+        padding: 100px 0;
+        background-color: #0d0d14;
+        border-top: 1px solid rgba(0, 243, 255, 0.05);
+        border-bottom: 1px solid rgba(0, 243, 255, 0.05);
+      }
+
+      .install-step {
+        background-color: var(--bg-card);
+        border-left: 4px solid var(--cyber-blue);
+        padding: 30px;
+        margin-bottom: 25px;
+        border-radius: 0 12px 12px 0;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .step-number {
+        color: var(--cyber-blue);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-right: 25px;
+        opacity: 0.8;
+      }
+
+      footer {
+        background-color: #050508;
+        padding: 50px 0 30px;
+        text-align: center;
+      }
+
+      .credits-text {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.8;
+        margin-bottom: 20px;
+      }
+
+      .credits-text strong {
+        color: #cfcfcf;
+      }
+
+      .github-link {
+        color: var(--cyber-blue);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: text-shadow 0.3s ease;
+      }
+
+      .github-link:hover {
+        text-shadow: 0 0 12px rgba(0, 243, 255, 0.7);
+        color: var(--cyber-blue);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="bi bi-shield-check me-2"></i> Phishio
+        </a>
+        <button
+          class="navbar-toggler navbar-dark border-0"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="collapse navbar-collapse justify-content-end"
+          id="navbarContent"
+        >
+          <ul class="navbar-nav gap-3">
+            <li class="nav-item">
+              <a class="nav-link" href="#features">Como Funciona</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#install">Instalação</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="https://github.com/stllucas/phishio/"
+                target="_blank"
+              >
+                <i class="bi bi-github me-1"></i> GitHub
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero-section text-center">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 animate__animated animate__fadeInUp">
+            <h1 class="hero-title">
+              Navegue com a inteligência da
+              <span class="highlight">comunidade</span>
+            </h1>
+            <p class="hero-subtitle px-md-5">
+              O Phishio combina a precisão do Processamento de Linguagem Natural
+              (NLP) e Motores Vetoriais com o poder do Crowdsourcing para
+              detectar e bloquear ameaças web em tempo real.
+            </p>
+            <a
+              href="https://github.com/stllucas/phishio/releases/download/latest/phishio_extension.zip"
+              class="btn-neon animate__animated animate__pulse animate__infinite animate__slower mt-2"
+            >
+              <i class="bi bi-cloud-arrow-down-fill me-2"></i> Baixar Extensão
+              (.zip)
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features-section">
+      <div class="container">
+        <h2 class="section-header animate__animated animate__fadeIn">
+          Arquitetura <span>Híbrida</span>
+        </h2>
+        <div class="row g-4">
+          <div
+            class="col-md-4 animate__animated animate__fadeInUp"
+            style="animation-delay: 0.1s"
+          >
+            <div class="cyber-card text-center">
+              <i class="bi bi-cpu-fill card-icon"></i>
+              <h3 class="card-title">Detecção em Real-Time</h3>
+              <p class="text-muted">
+                Análise heurística instantânea do DOM. Alimentado por
+                <strong>FastAPI</strong>, utilizamos técnicas avançadas de
+                <strong>NLP</strong> (TF-IDF e Cosseno) para identificar ataques
+                de zero-hora com alta precisão.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="col-md-4 animate__animated animate__fadeInUp"
+            style="animation-delay: 0.2s"
+          >
+            <div class="cyber-card text-center">
+              <i class="bi bi-people-fill card-icon"></i>
+              <h3 class="card-title">Inteligência Colaborativa</h3>
+              <p class="text-muted">
+                Segurança baseada em consenso. Através de nossa integração
+                nativa com o <strong>Firebase (Firestore)</strong>, os relatos
+                da comunidade atualizam a reputação de URLs em tempo real para
+                todos os usuários.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="col-md-4 animate__animated animate__fadeInUp"
+            style="animation-delay: 0.3s"
+          >
+            <div class="cyber-card text-center">
+              <i class="bi bi-shield-lock-fill card-icon"></i>
+              <h3 class="card-title">Privacidade e Performance</h3>
+              <p class="text-muted">
+                Processamento enxuto projetado para a arquitetura de Tiered
+                Storage. Desfrute de respostas ultra-rápidas
+                <strong>(latência &lt; 500ms)</strong> sem comprometer sua
+                privacidade de navegação.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="install-section">
+      <div class="container">
+        <h2 class="section-header">Guia de <span>Instalação</span></h2>
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div
+              class="install-step animate__animated animate__fadeInRight"
+              style="animation-delay: 0.1s"
+            >
+              <div class="step-number">01</div>
+              <div>
+                <h4 class="text-white mb-2">Obtenha o Pacote</h4>
+                <p class="text-muted mb-0">
+                  Baixe o arquivo <code>.zip</code> da Release mais recente
+                  (através do botão no topo desta página) e extraia o seu
+                  conteúdo para uma pasta de fácil acesso em seu computador.
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="install-step animate__animated animate__fadeInRight"
+              style="animation-delay: 0.2s"
+            >
+              <div class="step-number">02</div>
+              <div>
+                <h4 class="text-white mb-2">
+                  Habilite o Modo do Desenvolvedor
+                </h4>
+                <p class="text-muted mb-0">
+                  Abra o Google Chrome, digite
+                  <code>chrome://extensions</code> na sua barra de endereço e
+                  aperte Enter. No canto superior direito da tela, ative a chave
+                  <strong>"Modo do desenvolvedor"</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="install-step animate__animated animate__fadeInRight"
+              style="animation-delay: 0.3s"
+            >
+              <div class="step-number">03</div>
+              <div>
+                <h4 class="text-white mb-2">Carregue a Extensão</h4>
+                <p class="text-muted mb-0">
+                  Clique no botão
+                  <strong>"Carregar sem compactação"</strong> (no canto superior
+                  esquerdo) e selecione a pasta <code>extension</code> que você
+                  acabou de extrair. A proteção já está ativa!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <div class="mb-4">
+          <i
+            class="bi bi-braces-asterisk"
+            style="font-size: 2.5rem; color: rgba(0, 243, 255, 0.3)"
+          ></i>
+        </div>
+
+        <p class="credits-text">
+          Desenvolvido por <strong>Lucas dos Santos Lima</strong> e
+          <strong>Pedro Henrique Gomes Lückeroth</strong><br />
+          Orientação de <strong>Prof.ª Dr.ª Sinaide Nunes Bezerra</strong><br />
+          Trabalho de Conclusão de Curso - PUC Minas 2026
+        </p>
+
+        <div class="mt-4">
+          <a
+            href="https://github.com/stllucas/phishio/"
+            target="_blank"
+            class="github-link"
+          >
+            <i class="bi bi-github me-2"></i>Acessar Repositório Oficial
+          </a>
+        </div>
+      </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
