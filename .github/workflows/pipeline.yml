@@ -40,7 +40,7 @@ jobs:
           echo '{}' > data/vocabulario.json
           echo '{}' > data/idf.json
           touch data/postings.bin
-
+          touch data/idf_warm.db
       - name: Run Tests
         run: |
           # FIX DO PYTHONPATH: Ensinando o Python a achar a pasta runtime e core
