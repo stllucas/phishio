@@ -9,6 +9,8 @@ def test_api_performance_and_accuracy():
     """
     Testes de Integração de Sistemas: Foco no comportamento geral e nos recursos não funcionais (Performance).
     """
+    client.post("/check_url", json={"url": "http://warmup.com", "dom": "<html></html>"})
+    
     start_time = time.time()
 
     payload = {
