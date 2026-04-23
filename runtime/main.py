@@ -1,12 +1,15 @@
 import hashlib
 import logging
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # Imports locais
 from core.Config import SECRETS_FILE
 from core.SearchEngine import SearchEngine
+from core.GeoLocator import get_location_by_ip
 
 # Bibliotecas de terceiros
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from google.cloud import firestore
 from google.oauth2 import service_account
 from pydantic import BaseModel, Field
@@ -54,7 +57,8 @@ except Exception as e:
 class CheckUrlRequest(BaseModel):
     """Payload esperado para a verificação de URL."""
 
-    url: str = Field(..., description="A URL completa da página a ser analisada.")
+    url: str = Field(...,
+                     description="A URL completa da página a ser analisada.")
     dom: str = Field(..., description="O conteúdo textual (DOM) da página.")
 
 
@@ -70,7 +74,8 @@ class CheckUrlResponse(BaseModel):
 class ReportRequest(BaseModel):
     """Payload esperado para o reporte de uma URL pelo usuário."""
 
-    url: str = Field(..., description="A URL da página que está sendo reportada.")
+    url: str = Field(...,
+                     description="A URL da página que está sendo reportada.")
     voto: int = Field(
         ...,
         description="O voto do usuário: 1 para phishing, -1 para seguro.",
@@ -82,11 +87,13 @@ class ReportRequest(BaseModel):
 class ReportResponse(BaseModel):
     """Resposta do reporte de URL."""
 
-    message: str = Field(..., description="Mensagem de confirmação do reporte.")
+    message: str = Field(...,
+                         description="Mensagem de confirmação do reporte.")
     new_status: str = Field(
         ..., description="O novo status operacional da URL após o reporte."
     )
-    new_score: float = Field(..., description="O novo score de consenso da URL.")
+    new_score: float = Field(...,
+                             description="O novo score de consenso da URL.")
 
 
 # --- Funções Auxiliares ---
@@ -153,7 +160,8 @@ async def check_url(request: CheckUrlRequest):
 
             # Prioridade 2: Consenso Comunitário de Perigo
             if score >= 15:
-                logger.info(f"Cache HIT (Comunidade - Phishing): {request.url}")
+                logger.info(
+                    f"Cache HIT (Comunidade - Phishing): {request.url}")
                 return CheckUrlResponse(status="phishing", score=score)
 
             # Prioridade 3: Consenso Comunitário de Segurança Explícita
@@ -222,7 +230,8 @@ async def reportar_url(dados: ReportModel):
     Aplica a lógica de consenso ponderado.
     """
     if not db:
-        raise HTTPException(status_code=503, detail="Banco de dados indisponível.")
+        raise HTTPException(
+            status_code=503, detail="Banco de dados indisponível.")
 
     # Gera o ID usando a função de limpeza que você já tem no main.py
     url_id = generate_firestore_id(dados.url)
@@ -259,3 +268,44 @@ async def reportar_url(dados: ReportModel):
     except Exception as e:
         logger.error(f"Erro no reporte: {e}")
         raise HTTPException(status_code=500, detail="Erro interno.")
+
+# --- Reporte com Geolocalização ---
+
+
+@app.post("/report")
+async def report_phishing(request: Request, payload: dict):
+    """
+    Recebe o reporte, captura o IP, localiza geograficamente e salva no Firestore.
+    """
+    if not db:
+        logger.error(
+            "Tentativa de reporte falhou: Banco de dados indisponível.")
+        raise HTTPException(
+            status_code=503, detail="Serviço de banco de dados indisponível no momento.")
+
+    try:
+        client_ip = request.client.host if request.client else "IP_Desconhecido"
+
+        geo_data = get_location_by_ip(client_ip)
+
+        report_doc = {
+            "url": payload.get("url", "url_nao_fornecida"),
+            "user_id": payload.get("user_id", "anonymous"),
+            "ip": client_ip,
+            "estado": geo_data.get("estado", "Desconhecido"),
+            "cidade": geo_data.get("cidade", "Desconhecido"),
+            "pais": geo_data.get("pais", "Desconhecido"),
+            "timestamp": datetime.now(ZoneInfo("America/Sao_Paulo"))
+        }
+
+        db.collection("reports_geolocalizados").add(report_doc)
+
+        logger.info(
+            f"Sucesso! URL reportada pelo IP: {client_ip} ({geo_data.get('estado')})")
+
+        return {"status": "Report recebido e geolocalizado com sucesso", "geo": geo_data}
+
+    except Exception as e:
+        logger.error(f"[ERRO] Falha ao processar reporte geolocalizado: {e}")
+        raise HTTPException(
+            status_code=500, detail="Ocorreu um erro interno ao salvar o reporte. Tente novamente mais tarde.")
