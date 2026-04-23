@@ -23,13 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest httpx
-          # FIX DO NLTK: Baixando as stopwords direto no pipeline
           python -m nltk.downloader stopwords punkt
 
       - name: Setup Firebase Credentials
         run: |
           mkdir -p runtime
           echo '${{ secrets.FIREBASE_CREDENTIALS }}' > runtime/secrets
+
       - name: Setup Mock Data for CI
         run: |
           mkdir -p data
@@ -39,20 +39,10 @@ jobs:
           echo '{}' > data/idf.json
           touch data/postings.bin
           touch data/idf_warm.db
+
       - name: Run Tests
         run: |
-          # FIX DO PYTHONPATH: Ensinando o Python a achar a pasta runtime e core
           PYTHONPATH=.:./runtime pytest tests/ -v
-      - name: Zip Chrome Extension
-        run: |
-          zip -r phishio_extension.zip extension/
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: phishio_extension.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   package-extension:
     runs-on: ubuntu-latest
@@ -63,3 +53,11 @@ jobs:
       - name: Zip Chrome Extension
         run: |
           zip -r phishio_extension.zip extension/
+      - name: Update Latest Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: Phishio Beta (Última Versão)
+          files: phishio_extension.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
