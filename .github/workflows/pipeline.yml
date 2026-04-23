@@ -28,10 +28,8 @@ jobs:
 
       - name: Setup Firebase Credentials
         run: |
-          mkdir -p runtime/secrets
-          # IMPORTANTE: Manter aspas simples para não quebrar a sintaxe do JSON
+          mkdir -p runtime
           echo '${{ secrets.FIREBASE_CREDENTIALS }}' > runtime/secrets
-
       - name: Setup Mock Data for CI
         run: |
           mkdir -p data
