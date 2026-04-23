@@ -2,9 +2,9 @@ name: Phishio CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   build-and-test-api:
@@ -29,7 +29,17 @@ jobs:
       - name: Setup Firebase Credentials
         run: |
           mkdir -p runtime/secrets
-          echo "${{ secrets.FIREBASE_CREDENTIALS }}" > runtime/secrets/phishio-firebase-adminsdk.json
+          # IMPORTANTE: Manter aspas simples para não quebrar a sintaxe do JSON
+          echo '${{ secrets.FIREBASE_CREDENTIALS }}' > runtime/secrets/phishio-firebase-adminsdk.json
+
+      - name: Setup Mock Data for CI
+        run: |
+          mkdir -p data
+          echo '{}' > data/document_map.json
+          echo '{}' > data/norms.json
+          echo '{}' > data/vocabulario.json
+          echo '{}' > data/idf.json
+          touch data/postings.bin
 
       - name: Run Tests
         run: |
