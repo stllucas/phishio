@@ -1,3 +1,4 @@
+"""Módulo de geolocalização para obtenção de dados geográficos via IP."""
 import requests
 
 def get_location_by_ip(ip_address: str) -> dict:
@@ -5,7 +6,6 @@ def get_location_by_ip(ip_address: str) -> dict:
     Busca os dados geográficos de um IP.
     Retorna um dicionário padronizado para o Firestore.
     """
-    # IP local ou de loopback
     if ip_address in ["127.0.0.1", "localhost", "::1"]:
         return {"estado": "Local", "cidade": "Local", "pais": "Local"}
 
@@ -20,6 +20,6 @@ def get_location_by_ip(ip_address: str) -> dict:
                 "pais": data.get("country", "Desconhecido")
             }
     except requests.RequestException:
-        pass # Falha silenciosa para não travar a API principal
+        pass
 
     return {"estado": "Desconhecido", "cidade": "Desconhecido", "pais": "Desconhecido"}

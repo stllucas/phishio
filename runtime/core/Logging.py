@@ -1,14 +1,10 @@
-# ==============================================================================
-# log_config.py (VERSÃO FINAL: Logs com Timestamp e Pasta)
-# ==============================================================================
+"""Configuração do sistema de logging do coletor."""
 import logging
 import os
 from datetime import datetime
 
-# ATUALIZADO: Usa o diretório de logs de execução
 from .Config import LOG_FILES_DIR
 
-# Cache do logger para tornar a configuração idempotente
 _LOGGER = None
 _LOG_FILENAME = None
 
@@ -25,41 +21,32 @@ def setup_logging():
     if _LOGGER is not None:
         return _LOGGER
 
-    # 1. Usa o diretório correto para logs de execução e cria a subpasta
     log_execution_dir = os.path.join(LOG_FILES_DIR, 'execution_log')
     os.makedirs(log_execution_dir, exist_ok=True)
 
-    # 2. Gerar o nome do arquivo com timestamp dentro do novo diretório
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_filename = os.path.join(
         log_execution_dir, f'coletor_run_{timestamp}.log')
     _LOG_FILENAME = log_filename
 
-    # 3. Configuração do Logger
     logger = logging.getLogger('ColetorLogger')
-    logger.setLevel(logging.INFO)  # Nível mínimo para logging
+    logger.setLevel(logging.INFO)
 
-    # Formato do log
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    # Handler para o arquivo (novo log a cada execução)
     file_handler = logging.FileHandler(log_filename, encoding='utf-8')
     file_handler.setFormatter(formatter)
 
-    # Handler para o console (acompanhamento em tempo real)
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
 
-    # Limpar handlers antigos, se houver (garante configuração limpa)
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    # Adicionar handlers
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
 
-    # Notificar o usuário sobre o novo arquivo de log (apenas na primeira vez)
     logger.info(f"O log desta execução está sendo salvo em: {log_filename}")
 
     _LOGGER = logger

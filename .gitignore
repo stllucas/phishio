@@ -1,15 +1,9 @@
-# ==============================================================================
-# GITHUB IGNORE - PROJETO PHISHIO
-# ==============================================================================
-
-# --- AMBIENTE VIRTUAL E PYTHON ---
 venv/
 .venv/
 ENV/
 env/
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
 .Python
 build/
@@ -18,8 +12,6 @@ dist/
 .pytest_cache/
 .coverage
 htmlcov/
-
-# --- SISTEMA OPERACIONAL E IDEs ---
 .vscode/
 .idea/
 .DS_Store
@@ -30,9 +22,6 @@ Thumbs.db
 *.tmp
 *.bak
 *.lnk
-
-# --- ARTEFATOS DE DADOS E LOGS (CAMADA WARM/COLD) ---
-# Ignora diretórios de dados brutos e artefatos de 10GB+
 data/
 logs/
 maintenance/data-raw/
@@ -40,40 +29,21 @@ maintenance/data-processed/
 maintenance/provas_unitarias/
 maintenance/html_pages_temp/
 imagens-comportamentos/
-
-# Ignora formatos de arquivos pesados em qualquer pasta
 *.json
 *.csv
 *.bin
 *.tar.gz
-
-# --- SEGURANÇA E SEGREDOS ---
 secrets/
 secrets
 .env
 .env.local
 *.pem
 *.key
-
-# --- DOCUMENTOS PESSOAIS E BACKUPS ---
 docs/Relatórios-RIWRS
 setup_pessoal.bat
 extension/overlay.css.bkp
-
-# ==============================================================================
-# EXCEÇÕES (NÃO IGNORAR)
-# Estes arquivos são essenciais para o funcionamento do projeto e do GitHub
-# ==============================================================================
-
-# Não ignorar o manifesto da extensão (essencial para o Pedro)
 !/extension/manifest.json
-
-# Não ignorar arquivos de configuração leves do core
 !runtime/core/*.json
-
-# Não ignorar os scripts de manutenção
 !maintenance/scripts/**/*.py
-
-# Garante que arquivos README e requirements não sejam ignorados por engano
 !README.md
 !requirements.txt

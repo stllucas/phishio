@@ -1,4 +1,4 @@
-# Pastas pesadas que não pertencem ao servidor
+# Arquivo de configuração de arquivos e diretórios ignorados pelo Docker.
 maintenance/
 venv/
 docs/
@@ -6,20 +6,15 @@ extension/
 .git/
 infra/
 
-# Arquivos de sistema e cache
 __pycache__/
 *.pyc
 *.log
 .DS_Store
 
-# Limpeza na pasta data
-# Ignora tudo que for pesado e redundante
 data/*.csv
 data/execution_log/
 data/vocabulario.json
 data/idf.json
 
-# Aquivos de setup
 setup.bash
 setup.bat
-

@@ -1,3 +1,4 @@
+"""Motor de busca e ranqueamento de documentos."""
 import json
 import math
 import gc
@@ -8,16 +9,13 @@ from collections import defaultdict
 from logging import getLogger
 from functools import lru_cache
 
-# Imports locais - Ajustados para a nova estrutura de pastas
 from .Config import DATA_DIR
 from .Linguistic import process_text
 
-# --- Definição dos Caminhos dos Artefatos ---
 DOCUMENT_MAP_FILE = os.path.join(DATA_DIR, 'document_map.json')
 VOCABULARIO_FILE = os.path.join(DATA_DIR, 'vocabulario.json')
 POSTINGS_BIN_FILE = os.path.join(DATA_DIR, 'postings.bin')
 NORMS_FILE = os.path.join(DATA_DIR, 'norms.json')
-# Nova base de dados IDF (Camada WARM)
 IDF_DB_FILE = os.path.join(DATA_DIR, 'idf_warm.db')
 
 logger = getLogger('ColetorLogger')
@@ -28,19 +26,15 @@ class SearchEngine:
         logger.info(
             "[BACKEND INIT] Inicializando SearchEngine híbrido (RAM/SSD/SQLite)...")
 
-        # 1. Carrega apenas o essencial na RAM
-        # O Mapa de Documentos (296k) cabe, mas o Vocabulário (25M) NÃO.
         self.doc_map = self._carregar_json_ram(
             DOCUMENT_MAP_FILE, "Mapa de Documentos")
 
-        # Chamar o coletor de lixo para limpar resíduos da carga do JSON
         gc.collect()
 
         self.doc_norms = self._carregar_json_ram(
             NORMS_FILE, "Normas dos Documentos")
         gc.collect()
 
-        # 2. Conexão com o Banco Unificado (Contém IDF + Metadados do Vocabulário)
         if os.path.exists(IDF_DB_FILE):
             self.idf_conn = sqlite3.connect(
                 IDF_DB_FILE, check_same_thread=False)
@@ -51,7 +45,6 @@ class SearchEngine:
                 "[BACKEND ERROR] Banco idf_warm.db não encontrado!")
             raise FileNotFoundError("Gere o banco unificado antes de iniciar.")
 
-        # 3. Ponteiro para o binário de Postings
         if os.path.exists(POSTINGS_BIN_FILE):
             self.postings_handle = open(POSTINGS_BIN_FILE, 'rb')
             logger.info(
@@ -86,7 +79,6 @@ class SearchEngine:
 
         vetor_tfidf = {}
         for termo, tf in tf_consulta.items():
-            # Agora busca no SQLite/Cache em vez de dicionário na RAM
             idf = self.get_idf_weight(termo)
             if idf > 0:
                 vetor_tfidf[termo] = tf * idf
@@ -95,7 +87,6 @@ class SearchEngine:
     def buscar_postings_por_termo(self, termo_processado):
         try:
             cursor = self.idf_conn.cursor()
-            # Busca peso, offset e length de uma só vez!
             cursor.execute(
                 "SELECT offset, length FROM idf_table WHERE term = ?", (termo_processado,))
             result = cursor.fetchone()
@@ -114,7 +105,6 @@ class SearchEngine:
     def ranquear_documentos_completo(self, consulta_tfidf: dict):
         start_wall_time = time.time()
 
-        # Foca nos termos mais importantes para não sobrecarregar o I/O
         termos_focados = dict(
             sorted(consulta_tfidf.items(), key=lambda x: x[1], reverse=True)[:20])
 
@@ -126,21 +116,19 @@ class SearchEngine:
             if not postings:
                 continue
 
-            idf_termo = self.get_idf_weight(termo)  # Busca indexada
+            idf_termo = self.get_idf_weight(termo)
             for doc_id, tf in postings.items():
                 contagem_termos_por_doc[doc_id] += 1
                 if doc_id not in documentos_candidatos:
                     documentos_candidatos[doc_id] = {}
                 documentos_candidatos[doc_id][termo] = tf * idf_termo
 
-        # Cálculo de Similaridade do Cosseno
         norma_query = math.sqrt(sum(p ** 2 for p in consulta_tfidf.values()))
         scores = []
 
         for doc_id, vetor_doc in documentos_candidatos.items():
             norma_doc = self.doc_norms.get(str(doc_id), 1.0)
 
-            # Numerador: Produto Escalar
             numerador = sum(consulta_tfidf[t] * vetor_doc[t]
                             for t in vetor_doc if t in consulta_tfidf)
 

@@ -1,3 +1,4 @@
+"""Script para auditoria de termos e identificação de anomalias no índice invertido."""
 import ijson
 import os
 import csv
@@ -12,9 +13,8 @@ class TermAudit:
         self.output_dir = output_dir
         self.checkpoint_file = 'audit_checkpoint.json'
 
-        # Parâmetros de engenharia do TCC [cite: 212]
         self.threshold_pesado = 15000
-        self.num_workers = os.cpu_count() or 4  # Usa todos os núcleos disponíveis
+        self.num_workers = os.cpu_count() or 4
 
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -37,16 +37,14 @@ class TermAudit:
         while True:
             item = queue.get()
             if item is None:
-                break  # Sinal de parada
+                break
 
             termo, dados = item
-            # Limpeza para nomes de arquivos seguros
             termo_limpo = "".join(
                 [c if c.isalnum() else "_" for c in str(termo)]).strip()
             postings = dados.get('postings', {})
             num_postings = len(postings)
 
-            # Lógica de auditoria para o TCC: identifica termos que excederiam 1MB no Firestore [cite: 210, 215]
             if num_postings > self.threshold_pesado:
                 file_path = os.path.join(
                     self.output_dir, f"termoP_{termo_limpo}.csv")
@@ -63,11 +61,9 @@ class TermAudit:
         print(
             f"[INFO] Lendo índice de {self.json_source} a partir de: {inicio}")
 
-        # Fila de comunicação entre processos
         queue = Queue(maxsize=1000)
         workers = []
 
-        # Inicia os processos trabalhadores
         for _ in range(self.num_workers):
             p = Process(target=self._worker_analise, args=(queue,))
             p.start()
@@ -78,7 +74,6 @@ class TermAudit:
 
         try:
             with open(self.json_source, 'r', encoding='utf-8') as f:
-                # ijson.kvitems lê o arquivo em pedaços, sem carregar os 4.5GB na RAM [cite: 180]
                 objetos = ijson.kvitems(f, '')
 
                 for i, (termo, dados) in enumerate(objetos):
@@ -87,7 +82,6 @@ class TermAudit:
                     if i < inicio:
                         continue
 
-                    # Alimenta a fila para os workers
                     queue.put((termo, dados))
 
                     if i % 1000 == 0:
@@ -97,7 +91,6 @@ class TermAudit:
         except KeyboardInterrupt:
             print("\n[AVISO] Processamento interrompido. Checkpoint salvo.")
         finally:
-            # Envia sinal de encerramento para todos os workers
             for _ in range(self.num_workers):
                 queue.put(None)
 

@@ -1,3 +1,4 @@
+# Arquivo de configuração de infraestrutura como código (Terraform).
 terraform {
   required_providers {
     google = {
@@ -18,17 +19,15 @@ variable "gcp_project_id" {
   type        = string
 }
 
-# Enable Firestore (Native Mode)
 resource "google_app_engine_application" "firestore_app" {
   project       = var.gcp_project_id
   location_id   = "us-central"
   database_type = "CLOUD_FIRESTORE"
 }
 
-# Google Compute Engine Instance for the FastAPI Backend
 resource "google_compute_instance" "phishio_api" {
   name         = "phishio-backend-api"
-  machine_type = "e2-micro" # Fits within GCP Free Tier
+  machine_type = "e2-micro"
 
   boot_disk {
     initialize_params {
@@ -39,12 +38,10 @@ resource "google_compute_instance" "phishio_api" {
   network_interface {
     network = "default"
     access_config {
-      # Ephemeral public IP
     }
   }
 
   tags = ["http-server", "https-server"]
 
-  # Startup script to pull and run the Docker container
   metadata_startup_script = "sudo apt-get update && sudo apt-get install -y docker.io && sudo docker run -d -p 80:8000 ghcr.io/youruser/phishio-api:latest"
 }

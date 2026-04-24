@@ -1,13 +1,8 @@
-# ==============================================================================
-# tools/migrar_indice.py
-# Script de utilidade única para converter o índice invertido monolítico (JSON gigante)
-# em uma estrutura híbrida otimizada (Mapa JSON leve + Arquivo Binário denso).
-# ==============================================================================
+"""Script para converter o índice invertido monolítico (JSON) em formato híbrido (Mapa JSON + Binário)."""
 import json
 import os
 import sys
 
-# Adiciona o diretório pai (raiz do projeto) ao path para importar Config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
@@ -20,15 +15,12 @@ except ImportError as e:
     print("Verifique se está rodando do ambiente virtual e se 'ijson' e 'tqdm' estão instalados.")
     sys.exit(1)
 
-# --- Configuração dos Caminhos ---
-# Arquivo de entrada (Gigante)
 INPUT_INDICE_JSON = os.path.join(LOG_DIR_OUTPUT, 'indice_invertido.json')
 
-# Arquivos de saída (Otimizados)
 OUTPUT_VOCAB_JSON = os.path.join(
-    LOG_DIR_OUTPUT, 'vocabulario.json')  # Vai para a RAM
+    LOG_DIR_OUTPUT, 'vocabulario.json')
 OUTPUT_POSTINGS_BIN = os.path.join(
-    LOG_DIR_OUTPUT, 'postings.bin')   # Fica no SSD
+    LOG_DIR_OUTPUT, 'postings.bin')
 
 
 def migrar_indice():
@@ -47,41 +39,30 @@ def migrar_indice():
     print("Lendo índice gigante e gerando arquivos otimizados...")
     print("Isso pode levar vários minutos. Por favor, aguarde.")
 
-    # Abre o arquivo binário de saída para escrita ('wb')
-    # Abre o JSON gigante de entrada para leitura ('rb')
     try:
         with open(OUTPUT_POSTINGS_BIN, 'wb') as f_bin, open(INPUT_INDICE_JSON, 'rb') as f_in:
-            # Usa ijson para iterar sobre o arquivo gigante sem carregar tudo na RAM
-            # kvitems itera sobre pares chave/valor do objeto raiz
             iterable = ijson.kvitems(f_in, '')
 
             for termo, dados in tqdm(iterable, desc="Processando termos"):
-                # 1. Extrai dados relevantes
                 df = dados.get('df', 0)
                 postings_dict = dados.get('postings', {})
 
                 if not postings_dict:
                     continue
 
-                # 2. Serializa a lista de postings para uma string JSON compacta
-                # e converte para bytes (utf-8)
                 postings_bytes = json.dumps(
                     postings_dict, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
 
-                # 3. Obtém a posição atual do cursor no arquivo binário (Offset)
                 start_offset = f_bin.tell()
 
-                # 4. Escreve os bytes no arquivo binário
                 f_bin.write(postings_bytes)
 
-                # 5. Calcula o tamanho dos dados escritos
                 length = len(postings_bytes)
 
-                # 6. Salva os metadados no mapa do vocabulário (RAM)
                 vocabulario_map[termo] = {
                     'df': df,
-                    'offset': start_offset,  # Onde começa no SSD
-                    'length': length        # Quanto ler do SSD
+                    'offset': start_offset,
+                    'length': length
                 }
                 termo_count += 1
 
@@ -96,7 +77,6 @@ def migrar_indice():
         print(f"Postings (SSD) salvos em:    {OUTPUT_POSTINGS_BIN}")
         print("-" * 60)
 
-        # Mostra estatísticas de tamanho
         size_vocab_mb = os.path.getsize(OUTPUT_VOCAB_JSON) / (1024 * 1024)
         size_bin_gb = os.path.getsize(
             OUTPUT_POSTINGS_BIN) / (1024 * 1024 * 1024)
@@ -105,7 +85,6 @@ def migrar_indice():
 
     except Exception as e:
         print(f"\nERRO CRÍTICO DURANTE A MIGRAÇÃO: {e}")
-        # Apagar arquivos parciais em caso de erro
 
 
 if __name__ == '__main__':

@@ -1,11 +1,10 @@
+"""Script para inicializar a coleção de dados geográficos no Firestore."""
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# Imports internos
 from runtime.core.Config import SECRETS_FILE
-# Ajuste o caminho do secrets conforme o seu servidor
 secrets_path = SECRETS_FILE
 cred = credentials.Certificate(secrets_path)
 firebase_admin.initialize_app(cred)
@@ -15,11 +14,10 @@ db = firestore.client()
 def init_ip_collection():
     print("Iniciando criação da coleção de Mapemanento Geográfico...")
     
-    # Documento de semente (seed) para validar a estrutura
     seed_data = {
         "url": "http://teste-inicial-banco.com",
         "user_id": "system_init_001",
-        "ip": "200.147.67.142", # Exemplo de IP do UOL (Brasil)
+        "ip": "200.147.67.142",
         "estado": "Minas Gerais",
         "cidade": "Belo Horizonte",
         "pais": "Brazil",

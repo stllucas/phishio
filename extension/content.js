@@ -1,8 +1,7 @@
-// content.js - Execução limpa e silenciosa
+/** Script de conteúdo responsável por extrair o DOM da página atual. */
 function capturarEEnviar() {
-  // Só executa em páginas web válidas
   if (!window.location.href.startsWith("http")) return;
-  if (!document.body) return; // Heurística: Prevenção de erros caso a página carregue anomalias sem body formado
+  if (!document.body) return;
 
   const dadosParaAnalise = {
     url: window.location.href,
@@ -10,12 +9,10 @@ function capturarEEnviar() {
     dom: document.documentElement.outerHTML,
   };
 
-  // Envia silenciosamente para o background.js analisar
   chrome.runtime.sendMessage({
     action: "analisarPagina",
     dados: dadosParaAnalise,
   });
 }
 
-// Inicia automaticamente quando a página carrega
 capturarEEnviar();

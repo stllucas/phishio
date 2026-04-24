@@ -1,9 +1,9 @@
+/** Script de background (Service Worker) responsável por gerenciar a comunicação com a API. */
 const API_ENDPOINT = "https://phishio.duckdns.org";
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "analisarPagina") {
     chrome.storage.local.get(["protectionActive"], function (result) {
-      // Se não for explicitamente falso, assumimos que está ligado
       if (result.protectionActive !== false) {
         processarAnalise(request.dados, sender.tab.id);
       } else {
@@ -42,7 +42,6 @@ async function processarAnalise(dados, tabId) {
       const resultado = await response.json();
       const status = resultado.status;
 
-      // Salva o status exato atrelado à aba específica para o popup ler
       await chrome.storage.local.set({ [`status_${tabId}`]: status });
       atualizarInterface(status, tabId);
     }

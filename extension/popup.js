@@ -1,3 +1,4 @@
+/** Script responsável pela lógica de interface e interação do usuário no popup da extensão. */
 document.addEventListener("DOMContentLoaded", function () {
   const toggle = document.getElementById("protection-toggle");
   const mainIcon = document.getElementById("main-icon");
@@ -21,7 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
               chrome.storage.local.get([`status_${tabId}`], function (data) {
                 const status = data[`status_${tabId}`] || "safe";
 
-                // Normalização das strings do backend
                 if (status === "phishing") showPerigoScreen();
                 else if (status === "suspect" || status === "suspicious")
                   showSuspeitoScreen();
@@ -34,14 +34,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Heurística de Nielsen: Visibilidade do estado do sistema (Feedback visual)
-  // No popup.js
   function realizarReporte(voto, botaoClicado) {
     const textoOriginal = botaoClicado.innerHTML;
     botaoClicado.innerHTML = "<strong>Enviando...</strong>";
     botaoClicado.disabled = true;
 
-    // Remove mensagens de erro anteriores, se houver, para não acumular
     const erroAntigo = document.getElementById("phishio-inline-error");
     if (erroAntigo) erroAntigo.remove();
 
@@ -52,14 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
           if (response && response.success) {
             showSuccessMessage(voto === 1 ? "fake" : "secure");
           } else {
-            // Reverte o botão para o estado original
             botaoClicado.innerHTML = textoOriginal;
             botaoClicado.disabled = false;
 
-            // Cria o feedback visual de erro elegante (Nielsen)
             const erroDiv = document.createElement("div");
             erroDiv.id = "phishio-inline-error";
-            erroDiv.style.color = "#c62828"; // Vermelho erro
+            erroDiv.style.color = "#c62828";
             erroDiv.style.fontSize = "12px";
             erroDiv.style.marginTop = "12px";
             erroDiv.style.fontWeight = "bold";
@@ -67,7 +62,6 @@ document.addEventListener("DOMContentLoaded", function () {
             erroDiv.style.width = "100%";
             erroDiv.innerHTML = "❌ Erro ao enviar reporte. Tente novamente.";
 
-            // Adiciona a mensagem de erro logo após o grupo de botões
             botaoClicado.parentNode.parentNode.appendChild(erroDiv);
           }
         },
@@ -101,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </p>
         </div>
     `;
-    atualizarContadorUI(); // Atualiza o [x]
+    atualizarContadorUI();
   }
 
   function showSecureScreen() {
@@ -200,8 +194,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let btnText =
       type === "fake" || type === "suspect" ? "Sair deste site" : "Concluir";
 
-    // Heurística de Nielsen: Consistência e Visibilidade do Status do Sistema
-    // Ajusta o painel principal e escudo para refletir o status de sucesso neutro, evitando fundos vermelhos/amarelos residuais
     mainIcon.src = "images/svg/shield-active-128.svg";
     statusBadge.textContent = "Ação Concluída!";
     statusBadge.className = "status-badge secure";

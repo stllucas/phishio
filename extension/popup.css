@@ -1,18 +1,12 @@
-/* @font-face {
-    font-family: 'Righteous';
-    src: url('fonts/Righteous-Regular.ttf') format('truetype');
-} */
-
-/*body*/
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
   width: 350px;
-  height: 430px; /* Altura padronizada para caber tudo sem apertar */
+  height: 430px;
   background-color: #ffffff;
   color: #000000;
-  display: flex; /* Adicionado para flexibilidade */
+  display: flex;
   flex-direction: column;
   border-radius: 16px;
   overflow: hidden;
@@ -62,7 +56,6 @@ body {
   position: relative;
 }
 
-/*Componentes Globais*/
 .shield-icon {
   display: block;
   margin: 0 auto 10px auto;
@@ -92,7 +85,6 @@ body {
   min-height: 80px;
 }
 
-/*white fix*/
 .contribution-content {
   background-color: #ffffff;
   border-radius: 10px;
@@ -120,7 +112,6 @@ body {
   z-index: 10;
 }
 
-/*Tela Desligada*/
 .status-badge.off {
   background-color: #d9d9d9;
   color: #000000;
@@ -140,10 +131,9 @@ body {
 .thumbsup-icon {
   width: 50px;
   height: auto;
-  margin-bottom: 8px; /* Dá um leve espaçamento entre o joinha e o texto abaixo */
+  margin-bottom: 8px;
 }
 
-/* Tela Segura */
 .status-badge.secure {
   background-color: #d4f7d4;
   color: #000000;
@@ -167,7 +157,6 @@ body {
   width: 100%;
 }
 
-/*Tela Feedback*/
 .status-badge.feedback {
   background-color: #2196f3;
   color: #000000;
@@ -224,7 +213,6 @@ body {
   font-weight: bold;
 }
 
-/*Footer e Toggle*/
 .footer {
   padding: 10px 20px 6px 20px;
   display: flex;
@@ -292,8 +280,6 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-/* Tela Suspeito */
-/* Badgestatus */
 .status-badge.suspect {
   background-color: #f7e96d;
   color: #000000;
@@ -322,7 +308,6 @@ input:checked + .slider:before {
   margin-top: 10px;
 }
 
-/*Report Tela Suspeito*/
 .suspect-choice-btn {
   border: none;
   border-radius: 10px;
@@ -340,7 +325,6 @@ input:checked + .slider:before {
   flex-direction: column;
 }
 
-/*Cores dos botões*/
 .btn-choice-secure {
   background-color: #52c47a;
 }
@@ -353,8 +337,6 @@ input:checked + .slider:before {
   filter: brightness(0.9);
 }
 
-/*Tela Perigo*/
-/*Badge Vermelho*/
 .status-badge.danger {
   background-color: #b71c1c;
   color: #ffffff;
@@ -375,7 +357,6 @@ input:checked + .slider:before {
   margin-bottom: 12px;
 }
 
-/*botões tela Perigo */
 .danger-button-group {
   display: flex;
   gap: 10px;
@@ -384,7 +365,6 @@ input:checked + .slider:before {
   justify-content: center;
 }
 
-/*voltar*/
 .btn-danger-back {
   background-color: #b71c1c;
   color: #ffffff;
@@ -397,7 +377,6 @@ input:checked + .slider:before {
   flex: 1.1;
 }
 
-/*ignorar*/
 .btn-danger-ignore {
   background-color: #bdbdbd;
   color: #000000;
@@ -421,18 +400,17 @@ input:checked + .slider:before {
 .btn-danger-back,
 .btn-danger-ignore,
 .report-choice-btn {
-  height: 48px !important; /* Altura padrão para clique fácil */
-  border-radius: 12px !important; /* Curvatura padrão */
+  height: 48px !important;
+  border-radius: 12px !important;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: filter 0.2s ease;
-  width: 100%; /* Botões ocupam toda a largura da info-box */
-  margin-top: 10px; /* Espaçamento superior entre botões */
+  width: 100%;
+  margin-top: 10px;
 }
 
-/* Espaçamento interno para os textos do Pedro */
 .contribution-content p {
   margin: 0 0 10px 0;
   line-height: 1.4;
@@ -457,7 +435,6 @@ input:checked + .slider:before {
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Seta apontando para baixo */
 .phishio-tooltip .tooltip-text::after {
   content: "";
   position: absolute;
@@ -474,14 +451,14 @@ input:checked + .slider:before {
   opacity: 1;
 }
 #info-box.contribution-box {
-  margin: 0 auto 10px auto; /* Centraliza e dá margem inferior */
-  width: 90%; /* Ocupa a maior parte da largura para evitar 'aperto' */
+  margin: 0 auto 10px auto;
+  width: 90%;
   background-color: #ffffff;
-  border-radius: 12px; /* Cantos levemente arredondados */
-  padding: 12px; /* Mais espaço interno para os componentes respirarem */
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 160px; /* Garante espaço para mensagens de erro/sucesso */
+  min-height: 160px;
 }

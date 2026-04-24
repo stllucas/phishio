@@ -1,15 +1,10 @@
 #!/bin/bash
-
-# =================================================================
-# Script de Setup, Instalacao e Atualizacao de Dependencias (LINUX)
-# PROJETO PHISHIO - ARQUITETURA TIERED STORAGE
-# =================================================================
+# Script de inicialização e configuração do ambiente Phishio para Linux.
 
 echo "----------------------------------------------------------"
 echo "PHISHIO - AMBIENTE DE PRODUCAO/MANUTENCAO"
 echo "----------------------------------------------------------"
 
-# --- PASSO 1: VENV ---
 echo "[1/6] Preparando Ambiente Virtual (venv)..."
 if [ ! -d "venv" ]; then
     python3 -m venv venv
@@ -18,17 +13,13 @@ else
     echo "[INFO] Ambiente virtual 'venv' ja existe."
 fi
 
-# --- PASSO 2: ATIVACAO ---
 echo -e "\n[2/6] Ativando ambiente virtual..."
 source ./venv/bin/activate
 
-# --- PASSO 3: PIP ---
 echo -e "\n[3/6] Atualizando o PIP..."
 pip install --upgrade pip
 
-# --- PASSO 4: DEPENDENCIAS ---
 echo -e "\n[4/6] Instalando dependencias do projeto..."
-# Prioriza o requirements da raiz, senao instala o core
 if [ -f "requirements.txt" ]; then
     pip install --upgrade -r requirements.txt
 else
@@ -36,14 +27,11 @@ else
     pip install --upgrade fastapi uvicorn google-cloud-firestore beautifulsoup4 nltk tqdm ijson
 fi
 
-# --- PASSO 5: NLTK ---
 echo -e "\n[5/6] Baixando dados linguisticos do NLTK..."
 python3 -m nltk.downloader -q stopwords punkt
 echo "[OK] Dados linguisticos verificados."
 
-# --- PASSO 6: MIGRACAO (Ajustado para Tiered Storage) ---
 echo -e "\n[6/6] Verificando integridade dos dados (Camada Warm)..."
-# Novos caminhos conforme a nossa reestruturacao
 INDICE_FONTE="maintenance/data-raw/indice_invertido.json"
 POSTINGS_BIN="data/postings.bin"
 MIGRATION_SCRIPT="maintenance/scripts/database/MigrarIndice.py"

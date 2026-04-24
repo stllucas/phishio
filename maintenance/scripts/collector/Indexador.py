@@ -1,7 +1,4 @@
-# ==============================================================================
-# src/Indexador.py
-# Módulo responsável pela Representação e Indexação dos dados coletados.
-# ==============================================================================
+"""Módulo responsável pela Representação e Indexação dos dados coletados."""
 import json
 import os
 import re
@@ -54,11 +51,9 @@ class Indexador:
         try:
             soup = BeautifulSoup(conteudo_html, 'html.parser')
 
-            # Remove elementos de estilo e script, que não são conteúdo de busca
             for script_or_style in soup(['script', 'style']):
                 script_or_style.decompose()
 
-            # Retorna o texto visível, usando espaço como separador
             return soup.get_text(separator=' ')
         except Exception as e:
             logger.error(f"Erro na BeautifulSoup ao processar HTML. {e}")
@@ -67,23 +62,16 @@ class Indexador:
     @classmethod
     def limpar_e_tokenizar(cls, conteudo_html):
         """Aplica análise léxica: limpeza, tokenização, remoção de stopwords e stemming."""
-
-        # 1. Limpeza: Remoção de tags
         texto_limpo = cls._remover_tags_e_obter_texto(conteudo_html)
 
-        # 2. Normalização: Padronização para minúsculas e remoção de caracteres
-        # Mantém letras e acentos do português; remove pontuação e números
         limpo = re.sub(
             r'[^a-zA-ZáéíóúàèìòùãõâêîôûçÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÇ\s]', '', texto_limpo).lower()
 
-        # 3. Tokenização por espaço
         tokens = limpo.split()
 
         tokens_processados = []
         for token in tokens:
-            # 4. Filtra stopwords e tokens muito curtos
             if token not in STOPWORDS and len(token) > 2:
-                # 5. Stemming
                 tokens_processados.append(STEMMER.stem(token))
 
         return tokens_processados
@@ -97,17 +85,13 @@ class Indexador:
         logger.info("Iniciando construção do Índice Invertido...")
 
         indice_invertido = defaultdict(lambda: {'df': 0, 'postings': {}})
-        document_map = {}  # {doc_id: original_url}
+        document_map = {}
 
         try:
-            # --- Leitura  do CSV ---
-            # Especifica o motor 'python' e o 'quotechar' para lidar corretamente
-            # com mensagens de erro que contêm caracteres especiais dentro das colunas.
             log_df = pd.read_csv(
                 log_file_path, on_bad_lines='skip', low_memory=False, engine='python', quotechar='"'
             )
 
-            # --- VERIFICAÇÃO: Executada ANTES de acessar as colunas ---
             colunas_necessarias = {'status', 'saved_filename', 'original_url'}
             if log_df.empty or not colunas_necessarias.issubset(log_df.columns):
                 msg_erro = ("O arquivo de log ('collection_log.csv') está vazio ou malformado. "
@@ -116,8 +100,6 @@ class Indexador:
                 return None, None, msg_erro
             sucesso_df = log_df[log_df['status'].str.startswith('SUCCESS')]
 
-            # --- 1. OTIMIZAÇÃO CRÍTICA: Filtra apenas arquivos disponíveis em disco ---
-            # Isso impede que o Indexador tente abrir arquivos que o antivírus deletou.
             arquivos_disponiveis = set(os.listdir(html_dir))
             df_indexar = sucesso_df[sucesso_df['saved_filename'].isin(
                 arquivos_disponiveis)]
@@ -138,16 +120,13 @@ class Indexador:
                 logger.error(msg_erro)
                 return None, None, msg_erro
 
-            # Itera apenas sobre os documentos que realmente existem
             for doc_id, row in enumerate(df_indexar.itertuples()):
                 filepath = os.path.join(html_dir, row.saved_filename)
 
-                # --- 2. TRATAMENTO DE ERRO AO ABRIR ---
                 try:
                     with open(filepath, 'r', encoding='utf-8') as f:
                         conteudo = f.read()
                 except OSError as e:
-                    # Captura erros de I/O de última hora (improvável com o filtro, mas seguro)
                     logger.error(
                         f"ERRO DE ARQUIVO CRÍTICO (Ignorado): Falha I/O ao ler {row.saved_filename}. Erro: {e}")
                     continue
@@ -155,27 +134,21 @@ class Indexador:
                 tokens = cls.limpar_e_tokenizar(conteudo)
                 document_map[doc_id] = row.original_url
 
-                # Frequência de Termos (TF) para o documento atual
                 termo_frequencia = defaultdict(int)
                 for token in tokens:
                     termo_frequencia[token] += 1
 
-                # Atualizar o índice invertido
                 for termo, tf in termo_frequencia.items():
-                    # df (Document Frequency): Contagem de documentos que contêm o termo
                     if doc_id not in indice_invertido[termo]['postings']:
                         indice_invertido[termo]['df'] += 1
 
-                    # postings: Armazenamos a Frequência do Termo (TF) para o doc_id
                     indice_invertido[termo]['postings'][doc_id] = tf
 
             logger.info(
                 f"Índice construído. Total de termos únicos: {len(indice_invertido)}")
-            # Retorna None para o erro em caso de sucesso
             return indice_invertido, document_map, None
 
         except Exception as e:
-            # Captura falhas na leitura do CSV ou erros de DataFrame
             msg_erro = f"Falha CRÍTICA na construção do índice. Erro: {e}"
             logger.critical(msg_erro)
             return None, None, msg_erro
@@ -187,11 +160,9 @@ class Indexador:
         indice_output = os.path.join(output_dir, 'indice_invertido.json')
         map_output = os.path.join(output_dir, 'document_map.json')
 
-        # 1. Salva o Índice Invertido
         with open(indice_output, 'w', encoding='utf-8') as f:
             json.dump(dict(indice), f, ensure_ascii=False, indent=2)
 
-        # 2. Salva o Mapa de Documentos
         with open(map_output, 'w', encoding='utf-8') as f:
             json.dump(doc_map, f, ensure_ascii=False, indent=2)
 

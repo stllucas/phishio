@@ -1,6 +1,4 @@
-# ==============================================================================
-# Classe responsável por analisar o log e gerar relatórios de sucesso/erro.
-# ==============================================================================
+"""Classe responsável por analisar o log e gerar relatórios de sucesso e erro."""
 import pandas as pd
 import os
 
@@ -24,22 +22,16 @@ class GeradorRelatorio:
                 print(f"Aviso: Arquivo de log principal não encontrado em {log_file_path}.")
                 return {"success_path": None, "error_path": None, "total": 0, "success_count": 0, "error_count": 0}
 
-            # Lê o log geral
             log_df = pd.read_csv(log_file_path, on_bad_lines='skip')
             
-            # Remove linhas duplicadas, mantendo a mais recente (opcional, mas bom)
             log_df = log_df.sort_values(by='original_url', ascending=False).drop_duplicates(subset=['original_url'], keep='last')
 
-            # Filtra Sucesso
             success_df = log_df[log_df['status'].str.startswith('SUCCESS', na=False)]
             success_output_path = os.path.join(base_path, 'relatorio_sucesso.csv')
             
-            # Filtra Erro
-            # Inclui ERROR_ e FATAL_ERROR_
             error_df = log_df[log_df['status'].str.startswith(('ERROR_', 'FATAL_ERROR_'), na=False)]
             error_output_path = os.path.join(base_path, 'relatorio_erros.csv')
 
-            # Salva os arquivos
             success_df.to_csv(success_output_path, index=False)
             error_df.to_csv(error_output_path, index=False)
 

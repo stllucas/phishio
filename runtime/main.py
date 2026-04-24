@@ -1,40 +1,31 @@
+"""Módulo principal da API FastAPI para detecção de phishing."""
 import hashlib
 import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# Imports locais
 from core.Config import SECRETS_FILE
 from core.SearchEngine import SearchEngine
 from core.GeoLocator import get_location_by_ip
 
-# Bibliotecas de terceiros
 from fastapi import FastAPI, HTTPException, Request
 from google.cloud import firestore
 from google.oauth2 import service_account
 from pydantic import BaseModel, Field
 
-# --- Configuração de Logging ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Instanciando o motor vetotiral ---
 logger.info("Iniciando o carregamento prévio do Motor Vetorial")
 search_engine = SearchEngine()
 
-# --- Setup Inicial: FastAPI e Clientes ---
-
-# Inicializa a aplicação FastAPI
 app = FastAPI(
     title="Phishio API",
     description="API para detecção híbrida de phishing (Firestore Cache + Motor Vetorial).",
     version="1.0.0",
 )
 
-# Inicializa o cliente assíncrono do Firestore.
-# As credenciais são obtidas automaticamente do ambiente (GOOGLE_APPLICATION_CREDENTIALS).
 try:
-    # Para facilitar o desenvolvimento local, as credenciais são carregadas de um arquivo.
     if not SECRETS_FILE.exists():
         raise FileNotFoundError(
             f"Arquivo de credenciais não encontrado em: {SECRETS_FILE.resolve()}. Verifique se o arquivo 'secrets' está na pasta 'runtime'."
@@ -48,11 +39,7 @@ try:
     )
 except Exception as e:
     logger.critical(f"Falha ao inicializar o cliente Firestore: {e}")
-    # Em um ambiente de produção, isso poderia notificar uma equipe de SRE.
     db = None
-
-# --- Modelos Pydantic (Contrato de Dados) ---
-
 
 class CheckUrlRequest(BaseModel):
     """Payload esperado para a verificação de URL."""
@@ -96,29 +83,20 @@ class ReportResponse(BaseModel):
                              description="O novo score de consenso da URL.")
 
 
-# --- Funções Auxiliares ---
 def generate_firestore_id(url: str) -> str:
     """
     Normaliza a URL para garantir Cache HIT independente de protocolo ou subdomínio 'www'.
     Seguindo a lógica de desduplicação da Seção 3.1 do TCC.
     """
-    # 1. Padronização básica (Minúsculas e remover espaços)
     u = url.lower().strip()
 
-    # 2. Limpeza profunda de protocolo e www (Crucial para o TCC)
     u = u.replace("https://", "").replace("http://", "").replace("www.", "")
 
-    # 3. Remover parâmetros de busca e fragmentos
     u = u.split("?")[0].split("#")[0]
 
-    # 4. Remover barra final para unicidade
     u = u.rstrip("/")
 
-    # 5. SHA-256 (Deve ser igual ao Unify_collections.py)
     return hashlib.sha256(u.encode("utf-8")).hexdigest()
-
-
-# --- Endpoint Principal de Análise ---
 
 
 @app.post("/check_url", response_model=CheckUrlResponse)
@@ -128,12 +106,9 @@ async def check_url(request: CheckUrlRequest):
             status_code=503, detail="Serviço de banco de dados indisponível."
         )
 
-    # --- Passo A e B: Consulta ao Cache de Reputação (Firestore) ---
     try:
-        # 1. Gera o ID SHA-256
         doc_id = generate_firestore_id(request.url)
 
-        # Log depuração: Crucial para ver no console qual hash a API está gerando
         logger.info(
             f"[DEBUG] Buscando no Firestore ID: {doc_id} para URL: {request.url}"
         )
@@ -151,30 +126,25 @@ async def check_url(request: CheckUrlRequest):
                 f"[DEBUG] Documento encontrado no Cache! Status: {status_banco}, Score: {score}"
             )
 
-            # Prioridade 1: Verificação de Autoridade (Sistema)
             if is_verified:
                 logger.info(
                     f"Cache HIT (Autoridade): {request.url} - Veredito: {status_banco}"
                 )
                 return CheckUrlResponse(status=status_banco, score=score)
 
-            # Prioridade 2: Consenso Comunitário de Perigo
             if score >= 15:
                 logger.info(
                     f"Cache HIT (Comunidade - Phishing): {request.url}")
                 return CheckUrlResponse(status="phishing", score=score)
 
-            # Prioridade 3: Consenso Comunitário de Segurança Explícita
             if score < 0:
                 logger.info(f"Cache HIT (Comunidade - Safe): {request.url}")
                 return CheckUrlResponse(status="safe", score=score)
 
-            # ESTADO NEUTRO (0 <= score < 15): O fluxo continua para o Motor Vetorial
             logger.info(
                 f"URL em Estado Neutro (Score: {score}). Acionando análise profunda..."
             )
         else:
-            # Log de aviso/debug: Confirma se o Google simplesmente NÃO existe no banco
             logger.warning(
                 f"[DEBUG] Cache MISS Total: O ID {doc_id} não existe na coleção 'reputacao_urls_v2'."
             )
@@ -182,20 +152,15 @@ async def check_url(request: CheckUrlRequest):
     except Exception as e:
         logger.error(f"Erro na consulta de cache para {request.url}: {e}")
 
-    # --- Passo C: Análise Vetorial ---
     logger.info(f"Acionando motor vetorial para {request.url}")
     try:
-        # 1. Processamento e Vetorização
         vetor_query = search_engine.gerar_vetor_consulta_tfidf(request.dom)
 
-        # 2. Ranking de Similaridade (Ajustado para o nome correto do método)
         resultados = search_engine.ranquear_documentos_completo(vetor_query)
 
         if resultados:
-            # Similaridade do Cosseno
             maior_score = resultados[0][1]
 
-            # Limiares de decisão definidos na metodologia
             if maior_score > 0.75:
                 status_final = "phishing"
             elif maior_score > 0.4:
@@ -214,32 +179,35 @@ async def check_url(request: CheckUrlRequest):
         )
 
 
-# --- Endpoint de Crowdsourcing (Reporte de URL) ---
-
-
-# 1. Certifique-se de que o modelo está assim no topo:
 class ReportModel(BaseModel):
     url: str
-    voto: int  # 1 para phishing, -1 para seguro
+    voto: int
 
 
 @app.post("/reportar_url")
-async def reportar_url(request: Request, dados: ReportRequest): # Adicionado Request para pegar o IP
+async def reportar_url(request: Request, dados: ReportRequest):
     """
     Unifica Indicador 1 (Colaboração) e Indicador 2 (Confiabilidade).
     Captura IP, localiza geograficamente e atualiza o score de consenso.
     """
     if not db:
-        raise HTTPException(status_code=503, detail="Banco de dados indisponível.")
+        raise HTTPException(
+            status_code=503, detail="Banco de dados indisponível.")
 
     url_id = generate_firestore_id(dados.url)
     
-    # 1. Captura e Geolocalização do IP (Indicador 5 e 1)
-    client_ip = request.client.host if request.client else "IP_Desconhecido"
+    forwarded_for = request.headers.get("x-forwarded-for")
+    real_ip = request.headers.get("x-real-ip")
+
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    elif real_ip:
+        client_ip = real_ip.strip()
+    else:
+        client_ip = request.client.host if request.client else "IP_Desconhecido"
     geo_data = get_location_by_ip(client_ip)
 
     try:
-        # A. Gravação do Rastro Geográfico (Indicador de Distribuição Geográfica)
         await db.collection("reports_geolocalizados").add({
             "url": dados.url,
             "ip": client_ip,
@@ -248,10 +216,9 @@ async def reportar_url(request: Request, dados: ReportRequest): # Adicionado Req
             "timestamp": datetime.now(ZoneInfo("America/Sao_Paulo"))
         })
 
-        # B. Atualização do Score de Consenso (Indicador de Confiabilidade/Maturidade)
         voto_p = 1 if dados.voto == 1 else 0
         voto_s = 1 if dados.voto == -1 else 0
-        
+
         doc_ref = db.collection("reputacao_urls_v2").document(url_id)
         await doc_ref.set({
             "url": dados.url,
@@ -262,7 +229,6 @@ async def reportar_url(request: Request, dados: ReportRequest): # Adicionado Req
             "last_updated": firestore.SERVER_TIMESTAMP,
         }, merge=True)
 
-        # C. Lógica de Maturidade (Vira o status se houver consenso de 15 votos)
         doc = await doc_ref.get()
         if doc.exists:
             score = doc.to_dict().get("consensus_score", 0)
@@ -271,9 +237,11 @@ async def reportar_url(request: Request, dados: ReportRequest): # Adicionado Req
             elif score < 0:
                 await doc_ref.update({"status": "safe"})
 
-        logger.info(f"Reporte Completo: {dados.url} | IP: {client_ip} | Voto: {dados.voto}")
+        logger.info(
+            f"Reporte Completo: {dados.url} | IP: {client_ip} | Voto: {dados.voto}")
         return {"success": True, "message": "Reporte e geolocalização processados com sucesso."}
 
     except Exception as e:
         logger.error(f"Erro no processamento unificado: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno ao processar colaboração.")
+        raise HTTPException(
+            status_code=500, detail="Erro interno ao processar colaboração.")

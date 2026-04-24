@@ -1,3 +1,4 @@
+"""Script para geração de gráficos de dispersão referentes à densidade do índice invertido."""
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -11,15 +12,11 @@ def gerar_grafico_tcc():
         print(f"Erro: O arquivo {arquivo_csv} não foi encontrado.")
         return
 
-    # Tentativa de leitura com tratamento de encoding
     try:
-        # Tenta ler ignorando erros de caracteres para não travar o script
         df = pd.read_csv(arquivo_csv, encoding='utf-8', on_bad_lines='skip')
     except UnicodeDecodeError:
-        # Se falhar, tenta o padrão do Windows
         df = pd.read_csv(arquivo_csv, encoding='latin-1', on_bad_lines='skip')
 
-    # Filtramos apenas os sucessos e garantimos que os dados são numéricos
     df_ok = df[df['status'] == 'OK'].copy()
     df_ok['tamanho_postings'] = pd.to_numeric(df_ok['tamanho_postings'])
     df_ok['tempo_upload_s'] = pd.to_numeric(df_ok['tempo_upload_s'])
@@ -28,11 +25,9 @@ def gerar_grafico_tcc():
         print("Nenhum dado válido para plotagem.")
         return
 
-    # Configuração Visual
     plt.figure(figsize=(10, 6))
     sns.set_style("whitegrid")
 
-    # Gráfico de Dispersão com Linha de Regressão
     plot = sns.regplot(
         data=df_ok,
         x='tamanho_postings',

@@ -1,13 +1,10 @@
-# ==============================================================================
-# verificador.py (Logs de Status em Tempo Real)
-# ==============================================================================
+"""Módulo responsável por verificar e efetuar o download do conteúdo HTML de URLs suspeitas."""
 import hashlib
 import logging
 import os
 
 import requests
 
-# Obtém o logger configurado (garante que ColetorLogger esteja em log_config.py)
 logger = logging.getLogger('ColetorLogger')
 
 
@@ -48,7 +45,7 @@ class Verificador:
 
         filename = hashlib.md5(url.encode('utf-8')).hexdigest() + '.html'
         filepath = os.path.join(cls.OUTPUT_DIR_TEMP, filename)
-        response = None  # Inicializa response
+        response = None
 
         try:
             response = requests.get(
@@ -57,7 +54,7 @@ class Verificador:
                 timeout=cls.TIMEOUT_SECONDS,
                 allow_redirects=True
             )
-            response.raise_for_status()  # Lança exceção para 4xx e 5xx
+            response.raise_for_status()
 
             logger.info(f"SUCCESS: {url} -> Status {response.status_code}")
 

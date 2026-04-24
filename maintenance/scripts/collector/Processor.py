@@ -1,16 +1,12 @@
-# ==============================================================================
-# Corpo Lógico do Coletor
-# ==============================================================================
+"""Corpo lógico e orquestrador do processo de coleta web."""
 import datetime
 import os
 import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Bibliotecas de terceiros
 import pandas as pd
 from tqdm import tqdm
 
-# Imports locais
 from runtime.core.Config import (
     BASE_PATH,
     DATASETS_DIR,
@@ -22,28 +18,18 @@ from runtime.core.Logging import setup_logging
 from .Relatorio import GeradorRelatorio
 from .Verificador import Verificador
 
-# Configuracão do logger (Chamada modular, garantindo que seja o mesmo do launcher)
 logger = setup_logging()
 
-# ==============================================================================
-# 2. CONFIGURAÇÕES PRINCIPAIS
-# ==============================================================================
-
-# --- Caminhos e Arquivos (centralizados em src/config.py) ---
 URL_COLUMN_NAME = 'URL'
 
-# --- LOG_FILE e ERROR_LOG_FILE apontam para logs/ ---
 LOG_FILE = os.path.join(LOG_DIR_OUTPUT, 'collection_log.csv')
 ERROR_LOG_FILE = os.path.join(LOG_DIR_OUTPUT, 'error_log.txt')
 
-# ✅ CORRIGIDO: Os datasets agora são lidos a partir do caminho definido no Config.py
-# Certifique-se de mover os arquivos CSV para a pasta 'data/datasets/'.
 URL_FILES = [
     os.path.join(DATASETS_DIR, 'taruntiwarihp_dataset.csv'),
     os.path.join(DATASETS_DIR, 'mendeley_dataset.csv')
 ]
 
-# --- Configurações do Coletor ---
 MAX_WORKERS = 15
 TIMEOUT_SECONDS = 30
 
@@ -56,11 +42,7 @@ logger.info(f"Arquivos .zip serão salvos em: '{ZIP_OUTPUT_DIR}'")
 logger.info(f"Logs de resultados (CSV) serão salvos em: '{LOG_DIR_OUTPUT}'")
 
 
-# ==============================================================================
-# 3. FUNÇÃO DE FINALIZAÇÃO (Compactar e Salvar Localmente)
-# ==============================================================================
 def finalize_collection():
-    # ... (O corpo da função permanece o mesmo) ...
     logger.info("\n" + "="*50)
     logger.info("INICIANDO PROCESSO DE FINALIZAÇÃO...")
     logger.info("="*50)
@@ -83,22 +65,14 @@ def finalize_collection():
     except Exception as e:
         logger.error(f"Ocorreu um erro ao compactar os arquivos: {e}")
 
-# ==============================================================================
-# 4. FUNÇÃO PRINCIPAL (ORQUESTRADOR DA COLETA)
-# ==============================================================================
-
 
 def main():
-    # ... (O corpo da função main permanece o mesmo, incluindo a lógica de coleta) ...
     logger.info("="*50)
     logger.info("INICIANDO PROCESSO DE COLETA DE PÁGINAS HTML")
     logger.info("="*50)
 
     Verificador.set_config(OUTPUT_DIR_TEMP, TIMEOUT_SECONDS)
 
-    # ... (leitura de log, concatenação de CSVs, desduplicação) ...
-
-    # ... (leitura de log e de URLs) ...
     completed_urls = set()
     try:
         if os.path.exists(LOG_FILE):
@@ -113,7 +87,6 @@ def main():
         logger.warning(
             f"Falha ao ler o log de URLs concluídas: {e}. A coleta pode reprocessar algumas URLs.")
 
-    # --- Leitura e Concatenação dos Múltiplos Arquivos CSV ---
     all_dfs = []
 
     try:
@@ -135,7 +108,6 @@ def main():
             f"Erro CRÍTICO ao ler e concatenar os arquivos de URLs: {e}")
         return False, []
 
-    # Processamento e Filtragem de URLs
     raw_urls = df[URL_COLUMN_NAME].dropna().unique().tolist()
     urls = []
     for u in raw_urls:
@@ -153,10 +125,8 @@ def main():
         logger.info("Nenhuma URL nova para coletar. A tarefa já foi concluída!")
         return True, []
 
-    # --- CORREÇÃO: Garante que o log seja sempre cumulativo (append) ---
     needs_header = not os.path.exists(LOG_FILE)
 
-    # 'a' (append mode) garante que o arquivo nunca seja sobrescrito.
     with open(LOG_FILE, 'a', encoding='utf-8', newline='') as log_f:
         if needs_header:
             log_f.write("original_url,saved_filename,status\n")
@@ -189,9 +159,6 @@ def print_summary(total, completed, remaining):
     logger.info("-" * 50)
 
 
-# ==============================================================================
-# 5. LÓGICA DE PÓS-PROCESSAMENTO (Chamada pelo Launcher)
-# ==============================================================================
 def run_post_processing(collection_successful, attempted_urls):
     """Executa a geração de relatórios e a finalização após a coleta."""
 
@@ -201,7 +168,6 @@ def run_post_processing(collection_successful, attempted_urls):
         logger.info("GERANDO RELATÓRIOS CONSOLIDADOS (SUCESSO/ERRO)")
         logger.info("="*50)
 
-        # Chama a classe GeradorRelatorio para analisar o log completo
         relatorio_status = GeradorRelatorio.gerar_relatorios_consolidados(
             LOG_FILE, BASE_PATH)
 
@@ -212,7 +178,6 @@ def run_post_processing(collection_successful, attempted_urls):
             logger.info(
                 f"Relatório de Erros (Total: {relatorio_status['error_count']}) salvo em: {relatorio_status['error_path']}")
 
-        # Geração da lista de URLs que falharam nesta sessão (error_log.txt)
         if attempted_urls:
             try:
                 log_df = pd.read_csv(LOG_FILE, on_bad_lines='skip')
@@ -230,5 +195,4 @@ def run_post_processing(collection_successful, attempted_urls):
             except Exception as e:
                 logger.error(f"Falha ao gerar o log de erros da sessão: {e}")
 
-        # Chama a função de finalização (compactar e salvar/limpar).
         finalize_collection()

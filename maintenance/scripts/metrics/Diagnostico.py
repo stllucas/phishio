@@ -1,30 +1,20 @@
-# ==============================================================================
-# Script auxiliar para diagnóstico (Health Check) do sistema.
-# ==============================================================================
+"""Script auxiliar para diagnóstico e Health Check do estado do sistema de RI."""
 import json
 import sys
 from os.path import abspath, dirname
 
-# Bibliotecas de terceiros
 import pandas as pd
 
-# 1. Configurar o Python Path para execução direta do script
-# Adiciona o diretório pai ('backend') ao sys.path para permitir importações
-# absolutas a partir da raiz do projeto, como 'from core.Logging'.
 BACKEND_DIR = dirname(dirname(abspath(__file__)))
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 
-# 2. Importar o logger (opcional, mas recomendado para formatar a saída)
 try:
-    # Imports locais
     from runtime.core.Config import get_index_artifact_path
     from runtime.core.Logging import setup_logging
-    # Inicializa o logger para esta execução
     logger = setup_logging()
 except ImportError:
-    # Fallback se o logging falhar (para que o script ainda funcione)
     class FallbackLogger:
         def info(self, msg): print(msg)
         def warning(self, msg): print(f"AVISO: {msg}")
@@ -41,7 +31,6 @@ def verificar_integridade_sistema():
     logger.info("INICIANDO VERIFICAÇÃO DE INTEGRIDADE DO SISTEMA DE RI")
     logger.info("-" * 50)
 
-    # --- 1. Verificação da Coleta (collection_log.csv) ---
     caminho_arquivo_log = get_index_artifact_path('collection_log.csv')
     logger.info(f"1. Verificando log de coleta: {caminho_arquivo_log}")
 
@@ -65,7 +54,6 @@ def verificar_integridade_sistema():
             logger.error(
                 f"   - ERRO CRÍTICO ao processar o log de coleta: {e}")
 
-    # --- 2. Verificação dos Artefatos de Indexação e IDF ---
     artefatos = {
         "Mapa de Documentos": "document_map.json",
         "Índice Invertido": "indice_invertido.json",
@@ -88,7 +76,6 @@ def verificar_integridade_sistema():
             logger.info(f"   - Arquivo encontrado: {caminho_arquivo}")
             logger.info(f"   - Tamanho: {tamanho_mb:.2f} MB")
 
-            # Adiciona estatísticas específicas para cada arquivo
             if nome_arquivo in ["document_map.json", "idf.json"]:
                 with open(caminho_arquivo, 'r', encoding='utf-8') as f:
                     dados = json.load(f)
@@ -96,19 +83,17 @@ def verificar_integridade_sistema():
                     if nome_arquivo == "document_map.json":
                         logger.info(
                             f"   - Total de documentos mapeados: {numero_entradas}")
-                    else:  # idf.json
+                    else:
                         logger.info(
                             f"   - Total de termos no vocabulário (com IDF): {numero_entradas}")
 
-            # --- Verificação específica para o Índice Invertido (usando ijson para arquivos grandes) ---
             elif nome_arquivo == "indice_invertido.json":
                 try:
                     import ijson
                     logger.info(
                         "   - Analisando o número de termos (pode levar um tempo)...")
                     numero_termos = 0
-                    with open(caminho_arquivo, 'rb') as f:  # ijson prefere modo binário
-                        # Itera sobre as chaves do objeto raiz sem carregar os valores
+                    with open(caminho_arquivo, 'rb') as f:
                         for _ in ijson.kvitems(f, ''):
                             numero_termos += 1
                     logger.info(

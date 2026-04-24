@@ -1,3 +1,4 @@
+"""Script para migrar os dados de reputação de URLs para a coleção v2 no Firestore."""
 import hashlib
 import json
 import os
@@ -5,15 +6,13 @@ from google.cloud import firestore
 from google.oauth2 import service_account
 from tqdm import tqdm
 
-# --- CONFIGURA��ES ---
-CREDENTIALS_PATH = "secrets"  # Padronizado com o seu main.py
+CREDENTIALS_PATH = "secrets"
 JSON_SOURCE = "logs/document_map.json"
 COLLECTION_TARGET = "reputacao_urls_v2"
 LIMITE_MIGRACAO = 19000
 
 
 def gerar_hash_padronizado(url):
-    """Normaliza��o identica ao main.py para garantir integridade do Cache"""
     if not url:
         return None
     u = url.lower().strip()
@@ -23,7 +22,6 @@ def gerar_hash_padronizado(url):
 
 
 async def migrar_para_v2():
-    # 1. Conex�o Firestore
     if not os.path.exists(CREDENTIALS_PATH):
         print(f"[ERRO] Ficheiro '{CREDENTIALS_PATH}' n�o encontrado.")
         return
@@ -33,7 +31,6 @@ async def migrar_para_v2():
     )
     db = firestore.AsyncClient(credentials=gcp_credentials)
 
-    # 2. Carregar Document Map
     if not os.path.exists(JSON_SOURCE):
         print(f"[ERRO] Fonte {JSON_SOURCE} n�o encontrada.")
         return
@@ -46,18 +43,16 @@ async def migrar_para_v2():
     batch = db.batch()
     count = 0
 
-    # 3. Processamento em Lote
     for _, url in tqdm(list(doc_map.items())[:LIMITE_MIGRACAO], desc="Migrando"):
         url_hash = gerar_hash_padronizado(url)
 
         doc_ref = db.collection(COLLECTION_TARGET).document(url_hash)
 
-        # Estrutura exata conforme a sua imagem
         doc_data = {
             "consensus_score": 0,
             "id": url_hash,
             "last_updated": firestore.SERVER_TIMESTAMP,
-            "status": "phishing",  # Classifica��o inicial do dataset
+            "status": "phishing",
             "total_votos": 0,
             "url": url,
             "verificado_sistema": True,

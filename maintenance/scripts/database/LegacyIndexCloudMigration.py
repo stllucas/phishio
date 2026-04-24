@@ -1,3 +1,4 @@
+"""Script para migração legada do índice invertido para a nuvem Firestore."""
 import firebase_admin
 from firebase_admin import credentials, firestore
 import ijson
@@ -8,17 +9,15 @@ import csv
 from multiprocessing import Process, Queue, Value, Lock
 from tqdm import tqdm
 
-# --- CONFIGURAÇÕES ---
 CREDENTIALS_PATH = "tcc-coletor-web-firebase-adminsdk-fbsvc-9a87e2278a.json"
 CHECKPOINT_FILE = 'migration_checkpoint.json'
 METRICS_FILE = 'metrics_migration.csv'
 JSON_SOURCE = 'logs/indice_invertido.json'
 LIMITE_TERMOS = 73140
-NUM_WORKERS = 8      # Aumentado para 8 para maior paralelismo
-QUEUE_SIZE = 300     # Buffer maior para aproveitar a RAM
-TIMEOUT_HTTP = 120.0  # Desiste mais rápido de termos impossíveis
+NUM_WORKERS = 8
+QUEUE_SIZE = 300
+TIMEOUT_HTTP = 120.0
 
-# Bloqueio para escrita segura no CSV por múltiplos processos
 csv_lock = Lock()
 
 
@@ -41,8 +40,6 @@ def inicializar_csv():
             writer.writerow(['termo', 'tamanho_postings', 'tempo_proc_ms',
                             'tempo_upload_s', 'tentativa', 'status'])
 
-# --- WORKER (CONSUMIDOR) ---
-
 
 def worker_upload(queue, checkpoint_val):
     cred = credentials.Certificate(CREDENTIALS_PATH)
@@ -63,11 +60,9 @@ def worker_upload(queue, checkpoint_val):
         start_task = time.time()
         idx, termo, dados = item
 
-        # [Processamento Local]
         termo_limpo = str(termo).replace("/", "_").strip()
         num_postings = len(dados.get('postings', {}))
 
-        # Filtro de segurança para evitar documentos > 1MB no Firestore
         if num_postings > 15000:
             status = "PULADO_PESADO"
             proc_time = (time.time() - start_task) * 1000
@@ -80,7 +75,7 @@ def worker_upload(queue, checkpoint_val):
         proc_time = (time.time() - start_task) * 1000
         sucesso = False
 
-        for tentativa in range(1, 5):  # 4 tentativas para manter a fluidez
+        for tentativa in range(1, 5):
             try:
                 start_upload = time.time()
                 batch = db.batch()
@@ -90,7 +85,6 @@ def worker_upload(queue, checkpoint_val):
                 batch.commit(timeout=TIMEOUT_HTTP)
                 upload_time = time.time() - start_upload
 
-                # Registo de sucesso
                 with csv_lock:
                     with open(METRICS_FILE, 'a', newline='') as f:
                         csv.writer(f).writerow(
@@ -107,14 +101,11 @@ def worker_upload(queue, checkpoint_val):
                     csv.writer(f).writerow(
                         [termo_limpo, num_postings, proc_time, 0, 3, "FALHA_TIMEOUT"])
 
-        # Atualiza checkpoint global
         with checkpoint_val.get_lock():
             if idx > checkpoint_val.value:
                 checkpoint_val.value = idx
                 if idx % 20 == 0:
                     salvar_checkpoint(idx)
-
-# --- PRODUTOR ---
 
 
 def migrar_paralelo():
@@ -149,7 +140,6 @@ def migrar_paralelo():
                 queue.put((contador, termo, dados))
                 contador += 1
 
-                # Atualiza a barra com base no progresso real dos workers
                 barra.n = checkpoint_val.value
                 barra.refresh()
 
