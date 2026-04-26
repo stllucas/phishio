@@ -42,19 +42,27 @@ def converter_indice_completo():
                 "INSERT OR IGNORE INTO idf_table VALUES (?, ?, ?, ?)", batch)
             conn.commit()
 
-        print("[2/2] Atualizando pesos estatísticos...")
+        print("[2/2] Gravando pesos estatísticos em tabela temporária...")
+        cursor.execute("CREATE TEMP TABLE temp_idf (term TEXT PRIMARY KEY, weight REAL)")
         batch = []
         for term, weight in idf_items:
-            batch.append((float(weight), term))
+            batch.append((term, float(weight)))
             if len(batch) >= 50000:
                 cursor.executemany(
-                    "UPDATE idf_table SET weight = ? WHERE term = ?", batch)
-                conn.commit()
+                    "INSERT OR IGNORE INTO temp_idf VALUES (?, ?)", batch)
                 batch = []
         if batch:
             cursor.executemany(
-                "UPDATE idf_table SET weight = ? WHERE term = ?", batch)
-            conn.commit()
+                "INSERT OR IGNORE INTO temp_idf VALUES (?, ?)", batch)
+
+        print("[*] Mesclando os dados com REPLACE INTO...")
+        cursor.execute("""
+            REPLACE INTO idf_table (term, weight, offset, length)
+            SELECT t.term, i.weight, t.offset, t.length
+            FROM idf_table t
+            JOIN temp_idf i ON t.term = i.term
+        """)
+        conn.commit()
 
     cursor.execute("CREATE INDEX idx_term ON idf_table(term)")
     conn.commit()
