@@ -47,3 +47,4 @@ extension/overlay.css.bkp
 !maintenance/scripts/**/*.py
 !README.md
 !requirements.txt
+api.log
