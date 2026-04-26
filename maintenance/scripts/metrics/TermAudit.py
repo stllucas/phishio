@@ -3,7 +3,7 @@ import ijson
 import os
 import csv
 import json
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Lock
 from tqdm import tqdm
 
 
@@ -12,6 +12,7 @@ class TermAudit:
         self.json_source = json_source
         self.output_dir = output_dir
         self.checkpoint_file = 'audit_checkpoint.json'
+        self.output_file = os.path.join(self.output_dir, 'anomalous_terms.csv')
 
         self.threshold_pesado = 15000
         self.num_workers = os.cpu_count() or 4
@@ -32,7 +33,7 @@ class TermAudit:
         with open(self.checkpoint_file, 'w') as f:
             json.dump({'ultimo_indice': indice}, f)
 
-    def _worker_analise(self, queue):
+    def _worker_analise(self, queue, lock):
         """Worker paralelo: Consome da fila e processa a lógica de auditoria."""
         while True:
             item = queue.get()
@@ -40,19 +41,15 @@ class TermAudit:
                 break
 
             termo, dados = item
-            termo_limpo = "".join(
-                [c if c.isalnum() else "_" for c in str(termo)]).strip()
             postings = dados.get('postings', {})
             num_postings = len(postings)
 
             if num_postings > self.threshold_pesado:
-                file_path = os.path.join(
-                    self.output_dir, f"termoP_{termo_limpo}.csv")
-                with open(file_path, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(['ID_Documento', 'Frequencia_no_Doc'])
-                    for doc_id, freq in postings.items():
-                        writer.writerow([doc_id, freq])
+                rows = [[termo, doc_id, freq] for doc_id, freq in postings.items()]
+                with lock:
+                    with open(self.output_file, 'a', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerows(rows)
 
     def executar(self):
         inicio = self.carregar_checkpoint()
@@ -61,11 +58,17 @@ class TermAudit:
         print(
             f"[INFO] Lendo índice de {self.json_source} a partir de: {inicio}")
 
+        if inicio == 0 or not os.path.exists(self.output_file):
+            with open(self.output_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Termo', 'ID_Documento', 'Frequencia_no_Doc'])
+
         queue = Queue(maxsize=1000)
+        lock = Lock()
         workers = []
 
         for _ in range(self.num_workers):
-            p = Process(target=self._worker_analise, args=(queue,))
+            p = Process(target=self._worker_analise, args=(queue, lock))
             p.start()
             workers.append(p)
 
