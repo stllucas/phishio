@@ -28,22 +28,23 @@ echo [2/6] Ativando ambiente virtual...
 call .\venv\Scripts\activate
 
 echo.
-echo [3/6] Atualizando o PIP para a versao mais recente...
-py.exe -m pip install --upgrade pip
+echo [3/6] Atualizando o PIP...
+python.exe -m pip install --upgrade pip
 
 echo.
-echo [4/6] Instalando dependencias do projeto (FastAPI, Firestore, NLTK, etc.)...
-if exist "backend\requirements.txt" (
-    echo [INFO] Encontrado backend\requirements.txt. Instalando pacotes...
-    pip install -r backend\requirements.txt
-) else (
-    echo [INFO] requirements.txt nao encontrado. Instalando pacotes principais manualmente...
-    pip install fastapi uvicorn google-cloud-firestore pandas requests tqdm beautifulsoup4 nltk ijson firebase-admin
+echo [4/6] Instalando dependências do projeto...
+if exist "requirements.txt" (
+  echo [INFO] Instalando pacotes via requirements.txt...
+  pip install -r requirements.txt
+  ) else (
+  echo [ERRO] requirements.txt não encontrado na raiz do projeto.
+  pause
+  exit /b 1
 )
 
 echo.
-echo [5/6] Baixando dados linguisticos do NLTK (stopwords, punkt)...
-py -m nltk.downloader -q stopwords punkt
+echo [5/6] Baixando recursos do NLTK...
+python -m nltk.downloader -q stopwords punkt
 echo [OK] Dados linguisticos verificados/baixados.
 
 echo.
@@ -86,14 +87,14 @@ echo AMBIENTE PHISHIO ATUALIZADO E CONFIGURADO COM SUCESSO!
 echo ==========================================================
 echo.
 echo [COMO INICIAR A SUA API / BACK-END]
-echo   1. Digite no terminal:  .\venv\Scripts\activate
-echo   2. Navegue ate a pasta: cd backend
-echo   3. Inicie o servidor:   py -m uvicorn main:app --reload
+echo  1. Digite no terminal:  .\venv\Scripts\activate
+echo  2. Navegue ate a pasta: cd backend
+echo  3. Inicie o servidor:  py -m uvicorn main:app --reload
 echo.
 echo [COMO TESTAR A EXTENSAO / FRONT-END]
-echo   1. Abra o Chrome e acesse a URL: chrome://extensions/
-echo   2. Ative o "Modo do desenvolvedor" (canto superior direito).
-echo   3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension' deste projeto.
+echo  1. Abra o Chrome e acesse a URL: chrome://extensions/
+echo  2. Ative o "Modo do desenvolvedor" (canto superior direito).
+echo  3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension' deste projeto.
 echo.
 echo Para mais informacoes, consulte o arquivo README.md
 echo.

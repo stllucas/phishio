@@ -19,17 +19,17 @@ source ./venv/bin/activate
 echo -e "\n[3/6] Atualizando o PIP..."
 pip install --upgrade pip
 
-echo -e "\n[4/6] Instalando dependencias do projeto..."
+echo -e "\n[4/6] Instalando dependências do projeto..."
 if [ -f "requirements.txt" ]; then
     pip install --upgrade -r requirements.txt
 else
-    echo "[AVISO] requirements.txt nao encontrado. Instalando pacotes base..."
-    pip install --upgrade fastapi uvicorn google-cloud-firestore beautifulsoup4 nltk tqdm ijson
+    echo -e "[ERRO] requirements.txt não encontrado. Abortando para evitar ambiente inconsistente."
+    exit 1
 fi
 
-echo -e "\n[5/6] Baixando dados linguisticos do NLTK..."
+echo -e "\n[5/6] Baixando dados linguísticos do NLTK..."
 python3 -m nltk.downloader -q stopwords punkt
-echo "[OK] Dados linguisticos verificados."
+echo "[OK] Dados linguísticos verificados."
 
 echo -e "\n[6/6] Verificando integridade dos dados (Camada Warm)..."
 INDICE_FONTE="maintenance/data-raw/indice_invertido.json"
