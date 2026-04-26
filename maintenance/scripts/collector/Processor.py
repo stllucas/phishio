@@ -131,20 +131,25 @@ def main():
         if needs_header:
             log_f.write("original_url,saved_filename,status\n")
 
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_url = {executor.submit(
-                Verificador.download_url, url): url for url in urls_to_collect}
-            for future in tqdm(as_completed(future_to_url), total=len(urls_to_collect), desc="Coletando Páginas Restantes"):
-                try:
-                    original_url, saved_filename, status = future.result()
-                    log_f.write(
-                        f'"{original_url}","{saved_filename}","{status}"\n')
-                except Exception as exc:
-                    url_falha = future_to_url[future]
-                    logger.critical(
-                        f"FATAL_ERROR no Executor para {url_falha}: {exc}")
-                    log_f.write(
-                        f'"{url_falha}","","FATAL_ERROR_during_future_result_{exc}"\n')
+        with tqdm(total=len(urls_to_collect), desc="Coletando Páginas Restantes") as pbar:
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                chunk_size = 10000
+                for i in range(0, len(urls_to_collect), chunk_size):
+                    chunk = urls_to_collect[i:i + chunk_size]
+                    future_to_url = {executor.submit(
+                        Verificador.download_url, url): url for url in chunk}
+                    for future in as_completed(future_to_url):
+                        try:
+                            original_url, saved_filename, status = future.result()
+                            log_f.write(
+                                f'"{original_url}","{saved_filename}","{status}"\n')
+                        except Exception as exc:
+                            url_falha = future_to_url[future]
+                            logger.critical(
+                                f"FATAL_ERROR no Executor para {url_falha}: {exc}")
+                            log_f.write(
+                                f'"{url_falha}","","FATAL_ERROR_during_future_result_{exc}"\n')
+                        pbar.update(1)
 
     logger.info("\nCOLETA DE PÁGINAS FINALIZADA!")
     return True, urls_to_collect
