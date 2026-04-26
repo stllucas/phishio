@@ -174,7 +174,6 @@ body {
   margin-top: 10px;
 }
 
-/* Ajuste específico para o grupo de feedback não precisar de margem extra */
 .feedback-button-group .report-choice-btn {
     margin-top: 0;
 }
