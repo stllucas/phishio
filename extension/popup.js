@@ -48,7 +48,7 @@ function realizarReporte(voto, botaoClicado) {
         aviso.style.marginTop = "10px";
         aviso.style.fontWeight = "bold";
         aviso.style.textAlign = "center";
-        aviso.textContent = "✔ Voto registrado! A reclassificação deste site agora depende da confirmação de outros usuários.";
+        aviso.textContent = "✔ Você já reportou este site. Estamos computando sua opinião!";
         
         container.appendChild(aviso);
         botaoClicado.disabled = true;
