@@ -3,13 +3,19 @@ const API_ENDPOINT = "https://phishio.duckdns.org";
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "analisarPagina") {
-    chrome.storage.local.get(["protectionActive"], function (result) {
+    chrome.storage.local.get(["protectionActive"], (result) => {
       if (result.protectionActive !== false) {
-        processarAnalise(request.dados, sender.tab.id);
+        verificarRapida(request.url, sender.tab.id, sendResponse);
       } else {
         limparBadge(sender.tab.id);
+        sendResponse({ needsContent: false });
       }
     });
+    return true; 
+  }
+
+  if (request.action === "enviarDadosCompletos") {
+    processarAnaliseCompleta(request.dados, sender.tab.id);
   }
 
   if (request.action === "reportUrl") {
@@ -26,28 +32,61 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function processarAnalise(dados, tabId) {
+chrome.tabs.onRemoved.addListener((tabId) => {
+  chrome.storage.local.remove(`status_${tabId}`);
+});
+
+async function verificarRapida(url, tabId, sendResponse) {
+  setAnalizandoStatus(tabId);
+  try {
+    const response = await fetch(`${API_ENDPOINT}/check_url_fast`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const resultado = await response.json();
+
+    if (resultado.status === "unknown") {
+      sendResponse({ needsContent: true });
+    } else {
+      await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
+      atualizarInterface(resultado.status, tabId);
+      sendResponse({ needsContent: false });
+    }
+  } catch (error) {
+    console.error("Erro na verificação rápida:", error);
+    sendResponse({ needsContent: true }); 
+  }
+}
+
+async function processarAnaliseCompleta(dados, tabId) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
+
   try {
     const response = await fetch(`${API_ENDPOINT}/check_url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        url: dados.url,
-        content: dados.content,
-        dom: dados.dom,
-      }),
+      body: JSON.stringify(dados),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
     if (response.ok) {
       const resultado = await response.json();
-      const status = resultado.status;
-
-      await chrome.storage.local.set({ [`status_${tabId}`]: status });
-      atualizarInterface(status, tabId);
+      await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
+      atualizarInterface(resultado.status, tabId);
     }
   } catch (error) {
-    console.error("Erro no motor Phishio:", error);
+    clearTimeout(timeoutId);
+    console.error("Erro na análise profunda:", error);
   }
+}
+
+function setAnalizandoStatus(tabId) {
+  chrome.action.setBadgeBackgroundColor({ tabId: tabId, color: "#808080" });
+  chrome.action.setBadgeText({ tabId: tabId, text: "..." });
+  chrome.action.setIcon({ tabId: tabId, path: "icons/shield-inactive-48.png" });
 }
 
 async function enviarReporteParaAPI(url, vote) {
@@ -55,7 +94,7 @@ async function enviarReporteParaAPI(url, vote) {
     const response = await fetch(`${API_ENDPOINT}/reportar_url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: url, voto: vote }),
+      body: JSON.stringify({ url, voto: vote }),
     });
     return response.ok;
   } catch (error) {
@@ -64,25 +103,13 @@ async function enviarReporteParaAPI(url, vote) {
 }
 
 function atualizarInterface(status, tabId) {
-  let iconPath = "icons/shield-inactive-48.png";
-  let badgeText = "";
-  let badgeColor = "#757575";
-
-  if (status === "phishing") {
-    iconPath = "icons/shield-danger-48.png";
-    badgeText = "X";
-    badgeColor = "#F04646";
-  } else if (status === "suspect" || status === "suspicious") {
-    iconPath = "icons/shield-warning-48.png";
-    badgeText = "!";
-    badgeColor = "#F7E96D";
-  } else if (status === "safe" || status === "secure") {
-    iconPath = "icons/shield-safe-48.png";
-  }
-
-  chrome.action.setIcon({ tabId: tabId, path: iconPath });
-  chrome.action.setBadgeText({ tabId: tabId, text: badgeText });
-  chrome.action.setBadgeBackgroundColor({ tabId: tabId, color: badgeColor });
+  let iconPath = "icons/shield-inactive-48.png", badgeText = "", badgeColor = "#757575";
+  if (status === "phishing") { iconPath = "icons/shield-danger-48.png"; badgeText = "X"; badgeColor = "#F04646"; }
+  else if (status === "suspect" || status === "suspicious") { iconPath = "icons/shield-warning-48.png"; badgeText = "!"; badgeColor = "#F7E96D"; }
+  else if (status === "safe" || status === "secure") { iconPath = "icons/shield-safe-48.png"; }
+  chrome.action.setIcon({ tabId, path: iconPath });
+  chrome.action.setBadgeText({ tabId, text: badgeText });
+  chrome.action.setBadgeBackgroundColor({ tabId, color: badgeColor });
 }
 
 function limparBadge(tabId) {

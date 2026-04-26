@@ -34,19 +34,40 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function realizarReporte(voto, botaoClicado) {
-    const textoOriginal = botaoClicado.innerHTML;
-    botaoClicado.innerHTML = "<strong>Enviando...</strong>";
-    botaoClicado.disabled = true;
+function realizarReporte(voto, botaoClicado) {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    const urlAtual = tabs[0].url;
+    const storageKey = `voted_${btoa(urlAtual)}`;
 
-    const erroAntigo = document.getElementById("phishio-inline-error");
-    if (erroAntigo) erroAntigo.remove();
+    chrome.storage.local.get([storageKey], (res) => {
+      if (res[storageKey]) {
+        const container = botaoClicado.parentNode.parentNode;
+        const aviso = document.createElement("div");
+        aviso.style.color = "#2e7d32";
+        aviso.style.fontSize = "12px";
+        aviso.style.marginTop = "10px";
+        aviso.style.fontWeight = "bold";
+        aviso.style.textAlign = "center";
+        aviso.textContent = "✔ Você já reportou este site. Estamos computando sua opinião!";
+        
+        container.appendChild(aviso);
+        botaoClicado.disabled = true;
+        return;
+      }
 
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const textoOriginal = botaoClicado.innerHTML;
+      botaoClicado.innerHTML = "<strong>Enviando...</strong>";
+      botaoClicado.disabled = true;
+
+      const erroAntigo = document.getElementById("phishio-inline-error");
+      if (erroAntigo) erroAntigo.remove();
+
       chrome.runtime.sendMessage(
-        { action: "reportUrl", url: tabs[0].url, vote: voto },
+        { action: "reportUrl", url: urlAtual, vote: voto },
         (response) => {
           if (response && response.success) {
+            // Marca como votado no storage local
+            chrome.storage.local.set({ [storageKey]: true });
             showSuccessMessage(voto === 1 ? "fake" : "secure");
           } else {
             botaoClicado.innerHTML = textoOriginal;
@@ -64,11 +85,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             botaoClicado.parentNode.parentNode.appendChild(erroDiv);
           }
-        },
+        }
       );
     });
-  }
-
+  });
+}
   function atualizarContadorUI() {
     chrome.storage.local.get(["totalAvaliacoes"], (result) => {
       const counts = document.querySelectorAll("#eval-count");
@@ -86,15 +107,14 @@ document.addEventListener("DOMContentLoaded", function () {
     infoBox.className = "contribution-box off";
     boxTitle.style.display = "none";
     innerContent.innerHTML = `
-        <div class="contribution-content">
-            <img src="images/svg/thumbsup.png" alt="Joinha" class="thumbsup-icon"> 
-            <p style="margin: 0; font-size: 16px; color: #9c6363;">
-                Você ajudou a avaliar <span id="eval-count">0</span> 
-                <br>sites na nossa rede colaborativa
-                <br>sites na nossa rede colaborativa
-            </p>
-        </div>
-    `;
+    <div class="contribution-content">
+        <img src="images/svg/thumbsup.png" alt="Joinha" class="thumbsup-icon"> 
+        <p style="margin: 0; font-size: 16px; color: #9c6363;">
+            Você ajudou a avaliar <span id="eval-count">0</span> 
+            <br>sites na nossa rede colaborativa
+        </p>
+    </div>
+`;
     atualizarContadorUI();
   }
 
@@ -113,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <button class="report-btn" id="go-to-feedback">Reportar site suspeito</button>
         </div>
     `;
-    document.getElementById("go-to-feedback").onclick = showFeedbackScreen;
+    document.getElementById("go-to-feedback").onclick = () => showFeedbackScreen(showSecureScreen);
   }
 
   function showSuspeitoScreen() {
@@ -143,44 +163,60 @@ document.addEventListener("DOMContentLoaded", function () {
     statusBadge.className = "status-badge danger";
     infoBox.className = "contribution-box danger";
     boxTitle.style.display = "none";
+
     innerContent.innerHTML = `
         <div class="danger-text">Identificamos esta<br>página como fraudulenta!</div>
         <div class="danger-button-group">
             <button class="btn-danger-back" id="danger-back-btn"><strong>Voltar</strong></button>
-            <button class="btn-danger-ignore" id="danger-ignore-btn">Ignorar<br><strong>(não recomendado)</strong></button>
+            <button class="btn-danger-ignore" id="danger-ignore-btn">Ignorar<br>(não recomendado)</button>
         </div>
+        <a href="#" id="false-positive-link" style="margin-top: 15px; font-size: 11px; color: #555; text-decoration: underline;">
+            Reportar como classificação incorreta
+        </a>
     `;
-    document.getElementById("danger-back-btn").onclick = () => {
-      chrome.tabs.update({ url: "https://www.google.com" }, () =>
-        window.close(),
-      );
-    };
-    document.getElementById("danger-ignore-btn").onclick = () => window.close();
-  }
 
-  function showFeedbackScreen() {
+    document.getElementById("danger-back-btn").onclick = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0].id) {
+            chrome.tabs.goBack(tabs[0].id);
+            window.close();
+        }
+    });
+};
+    
+    document.getElementById("danger-ignore-btn").onclick = () => window.close();
+
+    document.getElementById("false-positive-link").onclick = (e) => {
+    e.preventDefault();
+    showFeedbackScreen(showPerigoScreen);
+    };
+}
+
+  function showFeedbackScreen(voltarPara) {
     addBackButton();
     mainIcon.src = "images/svg/shield-feedback-128.svg";
     statusBadge.textContent = "Encontrou um erro?";
     statusBadge.className = "status-badge feedback";
     infoBox.className = "contribution-box feedback";
+
     innerContent.innerHTML = `
         <div class="contribution-content">
             <div style="color: #000000; margin-bottom: 5px; font-size: 12px; font-weight: 500;">
                 Ajude a Comunidade. Qual o status correto deste site?
             </div>
-            <div class="button-group">
-                <button class="report-choice-btn btn-fake" id="report-fake-btn">Reportar como<br><strong>SITE FALSO</strong></button>
-                <button class="report-choice-btn btn-secure" id="report-secure-btn">Reportar como<br><strong>SITE SEGURO</strong></button>
+            <div class="feedback-button-group">
+                <button class="report-choice-btn btn-fake" id="report-fake-btn">Reportar como:<br><strong>SITE FALSO</strong></button>
+                <button class="report-choice-btn btn-secure" id="report-secure-btn">Reportar como:<br><strong>SITE SEGURO</strong></button>
             </div>
             <div class="tiny-footer-text">Seu voto é anônimo e ajuda a treinar nosso modelo analítico</div>
         </div>
     `;
-    document.getElementById("report-fake-btn").onclick = (e) =>
-      realizarReporte(1, e.currentTarget);
-    document.getElementById("report-secure-btn").onclick = (e) =>
-      realizarReporte(-1, e.currentTarget);
-  }
+
+    document.getElementById("report-fake-btn").onclick = (e) => realizarReporte(1, e.currentTarget);
+    document.getElementById("report-secure-btn").onclick = (e) => realizarReporte(-1, e.currentTarget);
+
+    document.getElementById("btn-back").onclick = voltarPara;
+}
 
   function showSuccessMessage(type) {
     let title =
@@ -211,14 +247,15 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
 
     document.getElementById("success-action-btn").onclick = () => {
-      if (type === "fake" || type === "suspect") {
-        chrome.tabs.update({ url: "https://www.google.com" }, () =>
-          window.close(),
-        );
-      } else {
+    if (type === "fake" || type === "suspect") {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.tabs.goBack(tabs[0].id);
+            window.close();
+        });
+    } else {
         showSecureScreen();
-      }
-    };
+    }
+};
     atualizarContadorUI();
   }
 
