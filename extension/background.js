@@ -39,7 +39,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 async function verificarRapida(url, tabId, sendResponse) {
   setAnalizandoStatus(tabId);
   try {
-    const response = await fetch(`${API_ENDPOINT}/check_url_fast`, {
+    const response = await fetch(`${API_ENDPOINT}/check_url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
