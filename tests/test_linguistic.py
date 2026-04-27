@@ -1,5 +1,6 @@
 from runtime.core.Linguistic import process_text
 import re
+import nltk
 
 
 class TestLinguisticEngine:
@@ -24,3 +25,18 @@ class TestLinguisticEngine:
         texto_espacado = re.sub(r'[./\-_]', ' ', text)
         result = process_text(texto_espacado)
         assert result == [], "Uma string vazia deve retornar uma lista vazia"
+
+    def test_process_text_weird_languages(self):
+        text = "这是一个中文字符串 - проверка кириллицы - arabic script العربية"
+        texto_espacado = re.sub(r'[./\-_]', ' ', text)
+        result = process_text(texto_espacado)
+        assert isinstance(result, list), "O processamento não deve quebrar com caracteres estrangeiros."
+
+    def test_nltk_resources_loaded(self):
+        try:
+            nltk.data.find('corpora/stopwords')
+            nltk.data.find('tokenizers/punkt')
+            loaded = True
+        except LookupError:
+            loaded = False
+        assert loaded, "Os recursos do NLTK (stopwords e punkt) precisam estar baixados e acessíveis."
