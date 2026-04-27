@@ -5,6 +5,8 @@ import gc
 import os
 import time
 import sqlite3
+import ijson
+import threading
 from collections import defaultdict
 from logging import getLogger
 from functools import lru_cache
@@ -26,10 +28,10 @@ class SearchEngine:
         logger.info(
             "[BACKEND INIT] Inicializando SearchEngine híbrido (RAM/SSD/SQLite)...")
 
-        self.doc_map = self._carregar_json_ram(
-            DOCUMENT_MAP_FILE, "Mapa de Documentos")
-
-        gc.collect()
+        if not os.path.exists(DOCUMENT_MAP_FILE):
+            logger.critical(
+                f"[BACKEND ERROR] Artefato ausente: {DOCUMENT_MAP_FILE}")
+            raise FileNotFoundError(f"Artefato ausente: {DOCUMENT_MAP_FILE}")
 
         self.doc_norms = self._carregar_json_ram(
             NORMS_FILE, "Normas dos Documentos")
@@ -47,6 +49,7 @@ class SearchEngine:
 
         if os.path.exists(POSTINGS_BIN_FILE):
             self.postings_handle = open(POSTINGS_BIN_FILE, 'rb')
+            self.postings_lock = threading.Lock()
             logger.info(
                 "[BACKEND INIT] Acesso ao arquivo de Postings (SSD) OK.")
         else:
@@ -54,6 +57,19 @@ class SearchEngine:
 
         logger.info(
             "[BACKEND INIT] Inicialização concluída com economia de RAM.")
+
+    @lru_cache(maxsize=10000)
+    def get_document_url(self, doc_id: str) -> str:
+        """Busca a URL de um documento pontualmente e mantém em cache os mais acessados."""
+        try:
+            with open(DOCUMENT_MAP_FILE, 'rb') as f:
+                for key, value in ijson.kvitems(f, ''):
+                    if key == str(doc_id):
+                        return value
+        except Exception as e:
+            logger.error(
+                f"[MAP ERROR] Erro ao buscar URL para '{doc_id}': {e}")
+        return "URL não encontrada"
 
     @lru_cache(maxsize=10000)
     def get_idf_weight(self, term):
@@ -95,8 +111,9 @@ class SearchEngine:
                 return None
 
             offset, length = result
-            self.postings_handle.seek(offset)
-            bin_data = self.postings_handle.read(length)
+            with self.postings_lock:
+                self.postings_handle.seek(offset)
+                bin_data = self.postings_handle.read(length)
             return json.loads(bin_data.decode('utf-8'))
         except Exception as e:
             logger.error(f"[ERROR] Falha no termo '{termo_processado}': {e}")
@@ -177,7 +194,8 @@ class SearchEngine:
 
         resultados = []
         for doc_id, score in ranking_paginado:
-            url = self.doc_map.get(str(doc_id), "URL não encontrada")
+            url = self.get_document_url(
+                str(doc_id), fallback="URL não encontrada")
             resultados.append((doc_id, score, url))
 
         return resultados, total

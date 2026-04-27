@@ -8,8 +8,9 @@ import time
 import csv
 from multiprocessing import Process, Queue, Value, Lock
 from tqdm import tqdm
+from runtime.core.Config import FIREBASE_CREDENTIALS_PATH as CREDENTIALS_PATH
 
-CREDENTIALS_PATH = "tcc-coletor-web-firebase-adminsdk-fbsvc-9a87e2278a.json"
+
 CHECKPOINT_FILE = 'migration_checkpoint.json'
 METRICS_FILE = 'metrics_migration.csv'
 JSON_SOURCE = 'logs/indice_invertido.json'

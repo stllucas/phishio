@@ -63,11 +63,11 @@ async def migrar_para_v2():
         batch.set(doc_ref, doc_data)
         count += 1
 
-        if count % 500 == 0:
+        if count % 450 == 0:
             await batch.commit()
             batch = db.batch()
 
-    if count % 500 != 0:
+    if count % 450 != 0:
         await batch.commit()
 
     print(f"\n[SUCESSO] {count} documentos migrados com IDs em SHA-256.")

@@ -9,12 +9,16 @@ from core.SearchEngine import SearchEngine
 from core.GeoLocator import get_location_by_ip
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import firestore
 from google.oauth2 import service_account
 from pydantic import BaseModel, Field
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# IPs de proxies reversos confiáveis (ex: Nginx, AWS ALB, Cloudflare).
+TRUSTED_PROXIES = {"127.0.0.1", "::1", "206.189.204.241"}
 
 logger.info("Iniciando o carregamento prévio do Motor Vetorial")
 search_engine = SearchEngine()
@@ -23,6 +27,23 @@ app = FastAPI(
     title="Phishio API",
     description="API para detecção híbrida de phishing (Firestore Cache + Motor Vetorial).",
     version="1.0.0",
+)
+
+ALLOWED_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
+    # Em produção, adicione o ID fixo da extensão:
+    # "chrome-extension://<id_da_sua_extensao>"
+    # Ainda não foi adiconado à Google extension Store.
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"^chrome-extension://.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 try:
@@ -40,6 +61,7 @@ try:
 except Exception as e:
     logger.critical(f"Falha ao inicializar o cliente Firestore: {e}")
     db = None
+
 
 class CheckUrlRequest(BaseModel):
     """Payload esperado para a verificação de URL."""
@@ -184,6 +206,26 @@ class ReportModel(BaseModel):
     voto: int
 
 
+def get_secure_client_ip(request: Request) -> str:
+    """Extrai o IP real do cliente validando proxies confiáveis e evita IP Spoofing."""
+    remote_addr = request.client.host if request.client else "IP_Desconhecido"
+
+    forwarded_for = request.headers.get("x-forwarded-for")
+    real_ip = request.headers.get("x-real-ip")
+
+    if forwarded_for or real_ip:
+        if remote_addr in TRUSTED_PROXIES:
+            if forwarded_for:
+                return forwarded_for.split(",")[0].strip()
+            return real_ip.strip()
+        else:
+            logger.warning(
+                f"[AUDITORIA] Tentativa de IP Spoofing bloqueada! Remetente não confiável ({remote_addr}) enviou cabeçalhos de proxy."
+            )
+
+    return remote_addr
+
+
 @app.post("/reportar_url")
 async def reportar_url(request: Request, dados: ReportRequest):
     """
@@ -195,16 +237,8 @@ async def reportar_url(request: Request, dados: ReportRequest):
             status_code=503, detail="Banco de dados indisponível.")
 
     url_id = generate_firestore_id(dados.url)
-    
-    forwarded_for = request.headers.get("x-forwarded-for")
-    real_ip = request.headers.get("x-real-ip")
 
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
-    elif real_ip:
-        client_ip = real_ip.strip()
-    else:
-        client_ip = request.client.host if request.client else "IP_Desconhecido"
+    client_ip = get_secure_client_ip(request)
     geo_data = get_location_by_ip(client_ip)
 
     try:

@@ -1,8 +1,9 @@
 """Script para inicializar as coleções de usuários e reputação inicial no Firestore."""
 import firebase_admin
 from firebase_admin import credentials, firestore
+import runtime.core.Config as Config
 
-cred = credentials.Certificate('tcc-coletor-web-firebase-adminsdk-fbsvc-9a87e2278a.json')
+cred = credentials.Certificate(Config.FIREBASE_CREDENTIALS_PATH)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
