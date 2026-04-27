@@ -68,14 +68,15 @@ class CheckUrlRequest(BaseModel):
 
     url: str = Field(...,
                      description="A URL completa da página a ser analisada.")
-    dom: str = Field(..., description="O conteúdo textual (DOM) da página.")
+    dom: str = Field(
+        default="", description="O conteúdo textual (DOM) da página.")
 
 
 class CheckUrlResponse(BaseModel):
     """Resposta da análise da URL."""
 
     status: str = Field(
-        ..., description="O veredito da análise: 'safe', 'suspicious', ou 'phishing'."
+        ..., description="O veredito da análise: 'safe', 'suspicious', 'phishing', ou 'needs_content'."
     )
     score: float = Field(..., description="O score de confiança do veredito.")
 
@@ -173,6 +174,11 @@ async def check_url(request: CheckUrlRequest):
 
     except Exception as e:
         logger.error(f"Erro na consulta de cache para {request.url}: {e}")
+
+    if not request.dom or request.dom.strip() == "":
+        logger.info(
+            f"Cache MISS para {request.url}. DOM não fornecido. Solicitando à extensão...")
+        return CheckUrlResponse(status="needs_content", score=0.0)
 
     logger.info(f"Acionando motor vetorial para {request.url}")
     try:
