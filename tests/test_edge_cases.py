@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from runtime.main import app
 from fastapi.testclient import TestClient
 
@@ -21,7 +21,8 @@ def test_null_dom():
 
 @pytest.mark.asyncio
 async def test_concurrency():
-    async with AsyncClient(app=app, base_url="http://testserver") as ac:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         payload = {"url": "http://concorrencia.com", "dom": "<html>Teste Concorrente</html>"}
         tasks = [ac.post("/check_url", json=payload) for _ in range(10)]
         responses = await asyncio.gather(*tasks)
