@@ -96,8 +96,11 @@ echo  1. Abra o Chrome e acesse a URL: chrome://extensions/
 echo  2. Ative o "Modo do desenvolvedor" (canto superior direito).
 echo  3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension' deste projeto.
 echo.
+echo [COMO TESTAR A API (TESTES AUTOMATIZADOS)]
+echo  1. Certifique-se de que o ambiente virtual (venv) esta ativado.
+echo  2. Na raiz do projeto, digite: pytest
+echo.
 echo Para mais informacoes, consulte o arquivo README.md
 echo.
 
 pause
-cls

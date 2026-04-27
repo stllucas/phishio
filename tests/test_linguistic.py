@@ -30,7 +30,8 @@ class TestLinguisticEngine:
         text = "这是一个中文字符串 - проверка кириллицы - arabic script العربية"
         texto_espacado = re.sub(r'[./\-_]', ' ', text)
         result = process_text(texto_espacado)
-        assert isinstance(result, list), "O processamento não deve quebrar com caracteres estrangeiros."
+        assert isinstance(
+            result, list), "O processamento não deve quebrar com caracteres estrangeiros."
 
     def test_nltk_resources_loaded(self):
         try:

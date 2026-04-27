@@ -57,4 +57,6 @@ echo "  3. Rode a API:      python3 -m uvicorn main:app --host 0.0.0.0 --port 80
 echo -e "\n[DICA DE PRODUCAO]"
 echo "  Para manter a API rodando apos fechar o SSH, use:"
 echo "  nohup python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 > api.log 2>&1 &"
+echo -e "\n[COMO TESTAR A API]"
+echo "  Na raiz do projeto (com venv ativado), rode: pytest"
 echo "----------------------------------------------------------"

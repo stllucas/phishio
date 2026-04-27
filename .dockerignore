@@ -18,3 +18,7 @@ data/idf.json
 
 setup.bash
 setup.bat
+
+.pytest_cache/
+pytest.ini
+tests/

@@ -194,8 +194,7 @@ class SearchEngine:
 
         resultados = []
         for doc_id, score in ranking_paginado:
-            url = self.get_document_url(
-                str(doc_id), fallback="URL não encontrada")
+            url = self.get_document_url(str(doc_id))
             resultados.append((doc_id, score, url))
 
         return resultados, total

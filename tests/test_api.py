@@ -9,8 +9,9 @@ def test_api_performance_and_accuracy():
     """
     Testes de Integração de Sistemas: Foco no comportamento geral e nos recursos não funcionais (Performance).
     """
-    client.post("/check_url", json={"url": "http://warmup.com", "dom": "<html></html>"})
-    
+    client.post(
+        "/check_url", json={"url": "http://warmup.com", "dom": "<html></html>"})
+
     start_time = time.time()
 
     payload = {
@@ -33,3 +34,18 @@ def test_api_performance_and_accuracy():
     assert execution_time_ms < 500, (
         f"Performance ruim: A API demorou {execution_time_ms:.2f}ms"
     )
+
+
+def test_report_url_success():
+    """Testa a rota de crowdsourcing (reportar url) com um voto válido."""
+    payload = {"url": "http://phishing-confirmado.com", "voto": 1}
+    response = client.post("/reportar_url", json=payload)
+    assert response.status_code == 200
+    assert response.json().get("success") is True
+
+
+def test_report_invalid_vote():
+    """Garante que a API negue votos fora do escopo permitido (-1 e 1)."""
+    payload = {"url": "http://site-teste.com", "voto": 5}
+    response = client.post("/reportar_url", json=payload)
+    assert response.status_code == 422, "A API deve rejeitar votos diferentes de -1, 0 ou 1"
