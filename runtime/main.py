@@ -3,6 +3,7 @@ import hashlib
 import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from typing import Optional
 
 from core.Config import SECRETS_FILE
 from core.SearchEngine import SearchEngine
@@ -32,9 +33,8 @@ app = FastAPI(
 ALLOWED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1",
-    # Em produção, adicione o ID fixo da extensão:
-    # "chrome-extension://<id_da_sua_extensao>"
-    # Ainda não foi adiconado à Google extension Store.
+    "chrome-extension://eobfgpgnhgjfdfoiahbpnegncokaebmo"
+
 ]
 
 app.add_middleware(
@@ -66,9 +66,9 @@ except Exception as e:
 class CheckUrlRequest(BaseModel):
     """Payload esperado para a verificação de URL."""
 
-    url: str = Field(...,
-                     description="A URL completa da página a ser analisada.")
-    dom: str = Field(
+    url: Optional[str] = Field(...,
+                               description="A URL completa da página a ser analisada.")
+    dom: Optional[str] = Field(
         default="", description="O conteúdo textual (DOM) da página.")
 
 
@@ -182,7 +182,8 @@ async def check_url(request: CheckUrlRequest):
 
     logger.info(f"Acionando motor vetorial para {request.url}")
     try:
-        vetor_query = search_engine.gerar_vetor_consulta_tfidf(request.dom)
+        texto_base = request.content if request.content else request.dom
+        vetor_query = search_engine.gerar_vetor_consulta_tfidf(texto_base)
 
         resultados = search_engine.ranquear_documentos_completo(vetor_query)
 
@@ -195,6 +196,22 @@ async def check_url(request: CheckUrlRequest):
                 status_final = "suspicious"
             else:
                 status_final = "safe"
+
+            try:
+                if db:
+                    doc_ref = db.collection(
+                        "reputacao_urls_v2").document(doc_id)
+                    await doc_ref.set({
+                        "url": request.url,
+                        "status": status_final,
+                        "consensus_score": 0,
+                        "verificado_sistema": True,
+                        "score_vetorial": maior_score,
+                        "last_updated": firestore.SERVER_TIMESTAMP,
+                    }, merge=True)
+            except Exception as cache_err:
+                logger.error(
+                    f"Erro ao salvar cache para {request.url}: {cache_err}")
 
             return CheckUrlResponse(status=status_final, score=maior_score)
 

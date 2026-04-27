@@ -11,11 +11,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ needsContent: false, protectionActive: false });
       }
     });
-    return true; 
+    return true;
   }
 
   if (request.action === "enviarDadosCompletos") {
     processarAnaliseCompleta(request.dados, sender.tab.id);
+    return true;
   }
 
   if (request.action === "reportUrl") {
@@ -46,7 +47,7 @@ async function verificarRapida(url, tabId, sendResponse) {
     });
     const resultado = await response.json();
 
-    if (resultado.status === "unknown") {
+    if (resultado.status === "needs_content" || resultado.status === "unknown") {
       sendResponse({ needsContent: true, protectionActive: true });
     } else {
       await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
@@ -55,13 +56,13 @@ async function verificarRapida(url, tabId, sendResponse) {
     }
   } catch (error) {
     console.error("Erro na verificação rápida:", error);
-    sendResponse({ needsContent: true, protectionActive: true }); 
+    sendResponse({ needsContent: true, protectionActive: true });
   }
 }
 
 async function processarAnaliseCompleta(dados, tabId) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3000);
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
 
   try {
     const response = await fetch(`${API_ENDPOINT}/check_url`, {
@@ -76,10 +77,14 @@ async function processarAnaliseCompleta(dados, tabId) {
       const resultado = await response.json();
       await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
       atualizarInterface(resultado.status, tabId);
+    } else {
+      console.error(`Falha no envio do DOM. Status HTTP: ${response.status}`);
+      const errText = await response.text();
+      console.error(`Detalhes: ${errText}`);
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error("Erro na análise profunda:", error);
+    console.error(`Erro na análise (CORS, Payload Size ou Timeout) para ${dados.url}:`, error);
   }
 }
 
@@ -103,10 +108,20 @@ async function enviarReporteParaAPI(url, vote) {
 }
 
 function atualizarInterface(status, tabId) {
-  let iconPath = "icons/shield-inactive-48.png", badgeText = "", badgeColor = "#757575";
-  if (status === "phishing") { iconPath = "icons/shield-danger-48.png"; badgeText = "X"; badgeColor = "#F04646"; }
-  else if (status === "suspect" || status === "suspicious") { iconPath = "icons/shield-warning-48.png"; badgeText = "!"; badgeColor = "#F7E96D"; }
-  else if (status === "safe" || status === "secure") { iconPath = "icons/shield-safe-48.png"; }
+  let iconPath = "icons/shield-inactive-48.png",
+    badgeText = "",
+    badgeColor = "#757575";
+  if (status === "phishing") {
+    iconPath = "icons/shield-danger-48.png";
+    badgeText = "X";
+    badgeColor = "#F04646";
+  } else if (status === "suspect" || status === "suspicious") {
+    iconPath = "icons/shield-warning-48.png";
+    badgeText = "!";
+    badgeColor = "#F7E96D";
+  } else if (status === "safe" || status === "secure") {
+    iconPath = "icons/shield-safe-48.png";
+  }
   chrome.action.setIcon({ tabId, path: iconPath });
   chrome.action.setBadgeText({ tabId, text: badgeText });
   chrome.action.setBadgeBackgroundColor({ tabId, color: badgeColor });
