@@ -70,6 +70,8 @@ class CheckUrlRequest(BaseModel):
                                description="A URL completa da página a ser analisada.")
     dom: Optional[str] = Field(
         default="", description="O conteúdo textual (DOM) da página.")
+    content: Optional[str] = Field(
+        default="", description="O conteúdo de texto extraído da página (innerText).")
 
 
 class CheckUrlResponse(BaseModel):
