@@ -8,7 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         verificarRapida(request.url, sender.tab.id, sendResponse);
       } else {
         limparBadge(sender.tab.id);
-        sendResponse({ needsContent: false });
+        sendResponse({ needsContent: false, protectionActive: false });
       }
     });
     return true; 
@@ -47,15 +47,15 @@ async function verificarRapida(url, tabId, sendResponse) {
     const resultado = await response.json();
 
     if (resultado.status === "unknown") {
-      sendResponse({ needsContent: true });
+      sendResponse({ needsContent: true, protectionActive: true });
     } else {
       await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
       atualizarInterface(resultado.status, tabId);
-      sendResponse({ needsContent: false });
+      sendResponse({ needsContent: false, protectionActive: true });
     }
   } catch (error) {
     console.error("Erro na verificação rápida:", error);
-    sendResponse({ needsContent: true }); 
+    sendResponse({ needsContent: true, protectionActive: true }); 
   }
 }
 

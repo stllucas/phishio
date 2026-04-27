@@ -5,17 +5,30 @@ async function iniciarAnalise() {
 
   const url = window.location.href;
 
-  chrome.runtime.sendMessage(
-    { 
-      action: "analisarPagina", 
-      url: url 
-    }, 
-    (resposta) => {
-      if (resposta && resposta.needsContent) {
-        coletarEEnviarConteudo(url);
-      }
+  try {
+    const resposta = await sendMessageComTimeout({ action: "analisarPagina", url: url }, 2000);
+
+    if (resposta && resposta.needsContent) {
+      coletarEEnviarConteudo(url);
     }
-  );
+  } catch (error) {
+    console.warn("Phishio: Falha no handshake com o Service Worker:", error.message);
+  }
+}
+
+function sendMessageComTimeout(mensagem, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Timeout de conexão")), ms);
+
+    chrome.runtime.sendMessage(mensagem, (resposta) => {
+      clearTimeout(timer);
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else {
+        resolve(resposta);
+      }
+    });
+  });
 }
 
 function coletarEEnviarConteudo(url) {
@@ -24,11 +37,7 @@ function coletarEEnviarConteudo(url) {
     content: document.body.innerText,
     dom: document.documentElement.outerHTML,
   };
-
-  chrome.runtime.sendMessage({
-    action: "enviarDadosCompletos",
-    dados: dadosCompletos,
-  });
+  chrome.runtime.sendMessage({ action: "enviarDadosCompletos", dados: dadosCompletos });
 }
 
 iniciarAnalise();
