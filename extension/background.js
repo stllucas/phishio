@@ -169,3 +169,17 @@ function limparBadge(tabId) {
   chrome.action.setBadgeText({ tabId: tabId, text: "" });
   chrome.action.setIcon({ tabId: tabId, path: "icons/shield-inactive-48.png" });
 }
+
+//trigger pra rodar o welcome
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install" || details.reason === "update") {
+    
+    chrome.storage.local.get(["lgpdConsent"], (result) => {
+      if (result.lgpdConsent === undefined || result.lgpdConsent === false) {
+        chrome.storage.local.set({ lgpdConsent: false });
+        chrome.tabs.create({ url: "welcome.html" });
+      }
+    });
+    
+  }
+});
