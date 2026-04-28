@@ -18,11 +18,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ needsContent: false, protectionActive: false });
       }
     });
-    return true; 
+    return true;
   }
 
   if (request.action === "enviarDadosCompletos") {
     processarAnaliseCompleta(request.dados, sender.tab.id);
+    return true;
   }
 
   if (request.action === "reportUrl") {
@@ -46,14 +47,14 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 async function verificarRapida(url, tabId, sendResponse) {
   setAnalizandoStatus(tabId);
   try {
-    const response = await fetch(`${API_ENDPOINT}/check_url_fast`, {
+    const response = await fetch(`${API_ENDPOINT}/check_url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     });
     const resultado = await response.json();
 
-    if (resultado.status === "unknown") {
+    if (resultado.status === "needs_content" || resultado.status === "unknown") {
       sendResponse({ needsContent: true, protectionActive: true });
     } else {
       await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
@@ -62,13 +63,13 @@ async function verificarRapida(url, tabId, sendResponse) {
     }
   } catch (error) {
     console.error("Erro na verificação rápida:", error);
-    sendResponse({ needsContent: true, protectionActive: true }); 
+    sendResponse({ needsContent: true, protectionActive: true });
   }
 }
 
 async function processarAnaliseCompleta(dados, tabId) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3000);
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
 
   try {
     const response = await fetch(`${API_ENDPOINT}/check_url`, {
@@ -83,10 +84,14 @@ async function processarAnaliseCompleta(dados, tabId) {
       const resultado = await response.json();
       await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
       atualizarInterface(resultado.status, tabId);
+    } else {
+      console.error(`Falha no envio do DOM. Status HTTP: ${response.status}`);
+      const errText = await response.text();
+      console.error(`Detalhes: ${errText}`);
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error("Erro na análise profunda:", error);
+    console.error(`Erro na análise (CORS, Payload Size ou Timeout) para ${dados.url}:`, error);
   }
 }
 
@@ -164,11 +169,3 @@ function limparBadge(tabId) {
   chrome.action.setBadgeText({ tabId: tabId, text: "" });
   chrome.action.setIcon({ tabId: tabId, path: "icons/shield-inactive-48.png" });
 }
-
-//trigger
-chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === "install") {
-    chrome.storage.local.set({ lgpdConsent: false });
-    chrome.tabs.create({ url: "welcome.html" });
-  }
-});

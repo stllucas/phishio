@@ -13,3 +13,7 @@ pydantic
 geoip2
 matplotlib
 seaborn
+pytest-cov
+pytest
+pytest-asyncio
+httpx
