@@ -276,8 +276,20 @@ function realizarReporte(voto, botaoClicado) {
 
   toggle.addEventListener("change", function () {
     const isActive = this.checked;
+    
     chrome.storage.local.set({ protectionActive: isActive }, () => {
-      if (!isActive) chrome.action.setBadgeText({ text: "" });
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        if (tabs[0]) {
+          const tabId = tabs[0].id;
+          
+          if (!isActive) {
+            chrome.action.setBadgeText({ tabId: tabId, text: "" });
+            chrome.action.setIcon({ tabId: tabId, path: "images/shield-inactive-48.png" });
+          } else {
+            chrome.tabs.reload(tabId);
+          }
+        }
+      });
       updateDisplayState();
     });
   });

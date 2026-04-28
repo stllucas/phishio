@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Bem-vindo ao Phishio</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 500px;
+      text-align: center;
+    }
+    .logo-text {
+      font-family: "Righteous", sans-serif;
+      color: #f04646;
+      font-size: 32px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .lgpd-box {
+      background-color: #fff9c4;
+      border: 1px solid #ffb222;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+      margin-bottom: 30px;
+    }
+    .btn-agree {
+      background-color: #52c47a;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 100%;
+    }
+    .btn-agree:hover {
+      background-color: #42a063;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-text">Phishio</div>
+    <h2>Proteção Colaborativa Ativada</h2>
+    <p>Antes de começarmos a proteger sua navegação, precisamos estar alinhados com a <strong>LGPD</strong>.</p>
+    
+    <div class="lgpd-box">
+      <strong>Privacidade e Dados:</strong><br>
+      Para detectar fraudes, o Phishio precisa analisar as URLs que você visita e, em casos suspeitos, o conteúdo visual (DOM) da página. Nós não salvamos dados pessoais, senhas ou histórico de navegação. Todo o processamento foca apenas na estrutura do site para identificar phishing.
+    </div>
+
+    <button id="btn-agree" class="btn-agree">Li, concordo e quero usar o Phishio</button>
+  </div>
+
+  <script src="welcome.js"></script>
+</body>
+</html>
