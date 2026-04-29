@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="extesion/icons/logo-phishio.png" alt="Logo Phishio" width="200" />
+  <img src="logo-phishio.png" alt="Logo Phishio" width="200" />
   <p><em>Sistema Híbrido Colaborativo para Detecção de Phishing em Tempo Real</em></p>
 </div>
 
