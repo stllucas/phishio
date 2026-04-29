@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icons/logo-phishio.png" alt="Logo Phishio" width="200" />
+  <img src="extesion/icons/logo-phishio.png" alt="Logo Phishio" width="200" />
   <p><em>Sistema Híbrido Colaborativo para Detecção de Phishing em Tempo Real</em></p>
 </div>
 
@@ -42,8 +42,8 @@ Siga os passos abaixo para instalar e rodar a extensão diretamente no seu naveg
 
 ---
 
-## 👨‍🎓 Autoria
+## Autoria
 
 * **Autores:** Pedro Henrique Gomes Lückeroth e Lucas dos Santos Lima
-* **Orientadora:** Prof. Sinaide Nunes Bezerra
+* **Orientador:** Prof. Sinaide Nunes Bezerra
 * **Instituição:** Pontífica Universidade Católica de Minas Gerais
