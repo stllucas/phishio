@@ -1,51 +1,49 @@
-# O phishio
+<div align="center">
+  <img src="icons/logo-phishio.png" alt="Logo Phishio" width="200" />
+  <p><em>Sistema Híbrido Colaborativo para Detecção de Phishing em Tempo Real</em></p>
+</div>
 
-**Phishio** é um sistema híbrido para detecção de *phishing* em tempo real, desenvolvido como um **Trabalho de Conclusão de Curso (TCC)**.
+---
 
-O projeto utiliza uma abordagem dupla que combina **Recuperação de Informação** (com Modelo Vetorial e TF-IDF) e **Crowdsourcing** para a validação de URLs suspeitas.
+## Site do Projeto
+
+https://pedroluckeroth.github.io/Site-Phishio-TCC-Extension/
+
+---
+
+## Sobre o Projeto
+
+**Phishio** é um sistema híbrido para detecção de *phishing* em tempo real, desenvolvido como um Trabalho de Conclusão de Curso (TCC). 
+
+O projeto utiliza uma abordagem dupla que combina a precisão da Recuperação de Informação (utilizando o Modelo Vetorial e TF-IDF) com o poder do Crowdsourcing para a validação comunitária de URLs suspeitas.
 
 ## Arquitetura
 
-A arquitetura é composta por dois componentes principais:
-1.  **API Backend**: Desenvolvida em Python com FastAPI, responsável pela análise de conteúdo (motor vetorial TF-IDF) e gerenciamento da reputação de URLs (via Firestore).
-2.  **Extensão para Google Chrome**: Atua como cliente (compatível com Manifest V3), analisando as páginas visitadas. Ela fornece feedback visual em tempo real através de um **Popup interativo** guiado por estados (seguro, suspeito, perigoso) e alerta o usuário oferecendo ações seguras. A interface também permite que o usuário reporte sites, alimentando diretamente a base de **Crowdsourcing**.
+A arquitetura do projeto é composta por dois componentes principais interligados:
 
-## Autoria
+* **API Backend:** Desenvolvida em `Python` com o framework `FastAPI`, é responsável pela análise profunda de conteúdo (utilizando motor vetorial TF-IDF) e pelo gerenciamento da reputação das URLs via **Firestore** (Firebase).
+* **Extensão para Google Chrome:** Atua como o cliente do sistema (compatível com **Manifest V3**), analisando silenciosamente as páginas visitadas.
+* **Feedback Visual:** Fornece retorno em tempo real através de um *Popup* interativo guiado por estados claros (🟢 Seguro, 🟡 Suspeito, 🔴 Perigoso).
+* **Interatividade:** Alerta o usuário oferecendo ações seguras para evitar ataques. Além disso, a interface permite que o usuário reporte sites maliciosos facilmente, alimentando diretamente a base de dados de *Crowdsourcing*.
 
-*   **Autores:** [Pedro Henrique Gomes Lückeroth](https://github.com/pedroluckeroth) e [Lucas dos Santos Lima](https://github.com/stllucas).
-*   **Orientadora:** [Prof. Dr. Sinaide Nunes Bezerra](https://github.com/sinaide).
+---
 
-## Começando
+## Instalação e Utilização do Phishio
 
-Estas instruções permitirão que você tenha uma cópia do projeto em execução em sua máquina local para fins de desenvolvimento e teste.
+Siga os passos abaixo para instalar e rodar a extensão diretamente no seu navegador Google Chrome:
 
-### Pré-requisitos
+1. **Obtenha o Pacote:** Baixe o arquivo `.zip` da *Release* mais recente neste repositório e extraia o seu conteúdo para uma pasta de fácil acesso em seu computador.
+2. **Habilite o Modo do Desenvolvedor:** * Abra o Google Chrome.
+   * Digite `chrome://extensions` na sua barra de endereço e aperte Enter.
+   * No canto superior direito da tela, ative a chave **"Modo do desenvolvedor"**.
+3. **Carregue a Extensão:** * Clique no botão **"Carregar sem compactação"** (no canto superior esquerdo da tela).
+   * Selecione a pasta `extension` (dentro dos arquivos que você acabou de extrair).
+   * *Pronto! A proteção já está ativa no seu navegador.*
 
-*   Python 3.10 ou superior
-*   Windows ou Linux (para usar os scripts de setup automáticos)
+---
 
-### Instalação Automatizada
+## 👨‍🎓 Autoria
 
-Para facilitar a configuração do ambiente, o projeto inclui scripts de automação para Windows e Linux localizados na raiz do repositório (`setup.bat` e `setup.bash`).
-
-Estes scripts cuidam de todo o processo de configuração inicial para você. Eles irão:
-
-1.  Criar um ambiente virtual Python (`venv`) para isolar as dependências.
-2.  Ativar o ambiente virtual.
-3.  Atualizar o `pip`, o gerenciador de pacotes do Python.
-4.  Instalar todas as dependências necessárias para o backend (FastAPI, Uvicorn, NLTK, banco de dados, etc.).
-5.  Baixar os dados linguísticos necessários para o NLTK.
-6.  Verificar e migrar os índices de dados para um formato otimizado (Tiered Storage / SQLite), caso necessário.
-
-**Como usar:**
-
-*   **No Windows:** Dê um duplo-clique no arquivo `setup.bat` na raiz do projeto ou execute-o através do seu terminal (`.\setup.bat`).
-*   **No Linux:** Abra o terminal na raiz do projeto, dê permissão de execução com `chmod +x setup.bash` e execute-o (`./setup.bash`).
-
-Ao final da execução, o script exibirá as instruções para iniciar o servidor da API e carregar a extensão no Chrome.
-
-### Desenvolvimento Local
-
-Se você for atuar como desenvolvedor e estiver rodando a API na sua própria máquina, é necessário ajustar a rota de comunicação na extensão. 
-
-Para isso, abra o arquivo `extension/background.js` e altere o valor da constante `API_ENDPOINT` para a sua rota local (geralmente `http://localhost:8000` ou `http://127.0.0.1:8000`).
+* **Autores:** Pedro Henrique Gomes Lückeroth e Lucas dos Santos Lima
+* **Orientadora:** Prof. Sinaide Nunes Bezerra
+* **Instituição:** Pontífica Universidade Católica de Minas Gerais
