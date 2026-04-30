@@ -125,6 +125,7 @@ def generate_firestore_id(url: str) -> str:
 
 @app.post("/check_url", response_model=CheckUrlResponse)
 async def check_url(request: CheckUrlRequest):
+    """Verifica o status de segurança de uma URL validando no Cache do Firestore ou acionando a análise vetorial."""
     if not db:
         raise HTTPException(
             status_code=503, detail="Serviço de banco de dados indisponível."
@@ -271,7 +272,7 @@ async def reportar_url(request: Request, dados: ReportRequest):
             "ip": client_ip,
             "estado": geo_data.get("estado", "Desconhecido"),
             "cidade": geo_data.get("cidade", "Desconhecido"),
-            "pais": geo_data.get("pais", "Desconhecido"), # Novo campo
+            "pais": geo_data.get("pais", "Desconhecido"),
             "voto": dados.voto,
             "timestamp": datetime.now(ZoneInfo("America/Sao_Paulo"))
         })
@@ -305,3 +306,48 @@ async def reportar_url(request: Request, dados: ReportRequest):
         logger.error(f"Erro no processamento unificado: {e}")
         raise HTTPException(
             status_code=500, detail="Erro interno ao processar colaboração.")
+# main.py (adicione perto das outras rotas, por exemplo, após /reportar_url)
+
+
+class ConsentRequest(BaseModel):
+    """Payload esperado para registrar o consentimento do usuário."""
+    versao_termos: str = Field(..., description="A versão dos termos aceitos.")
+    user_agent: Optional[str] = Field(
+        default="Desconhecido", description="O User-Agent do navegador.")
+
+
+@app.post("/registrar_consentimento")
+async def registrar_consentimento(request: Request, dados: ConsentRequest):
+    """
+    Registra o aceite dos termos de uso da extensão (LGPD).
+    Usa um hash do IP para fins de auditoria anônima.
+    """
+    if not db:
+        raise HTTPException(
+            status_code=503, detail="Banco de dados indisponível.")
+
+    client_ip = get_secure_client_ip(request)
+
+    ip_hash = hashlib.sha256(
+        (client_ip + "phishio_salt_lgpd").encode("utf-8")).hexdigest()
+
+    try:
+        doc_ref = db.collection("user_consent").document(ip_hash)
+
+        await doc_ref.set({
+            "ip_hash": ip_hash,
+            "consent": True,
+            "versao_termo": dados.versao_termos,
+            "user_agent": dados.user_agent,
+            "data_aceite": firestore.SERVER_TIMESTAMP,
+            "ultimo_ip_mascarado": f"{client_ip.split('.')[0]}.*.*.*"
+        }, merge=True)
+
+        logger.info(
+            f"Consentimento registrado para IP (Hash): {ip_hash[:8]}...")
+        return {"success": True, "message": "Consentimento registrado com sucesso."}
+
+    except Exception as e:
+        logger.error(f"Erro ao registrar consentimento: {e}")
+        raise HTTPException(
+            status_code=500, detail="Erro interno ao registrar consentimento.")
