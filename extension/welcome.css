@@ -1,0 +1,58 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.container {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  text-align: center;
+}
+.logo-text {
+  font-family: "Righteous", sans-serif;
+  color: #f04646;
+  font-size: 32px;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.lgpd-box {
+  background-color: #fff9c4;
+  border: 1px solid #ffb222;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+  margin-bottom: 30px;
+}
+.btn-agree {
+  background-color: #52c47a;
+  color: #2c3e50;
+  border: none;
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.6s,
+    color 0.6s;
+  width: 100%;
+}
+
+.btn-agree:hover {
+  background-color: #5c5c5cb2;
+  color: #ffffff;
+}

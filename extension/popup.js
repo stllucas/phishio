@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
     boxTitle.style.display = "none";
     innerContent.innerHTML = `
     <div class="contribution-content">
-        <img src="images/svg/thumbsup.png" alt="Joinha" class="thumbsup-icon"> 
+        <img src="images/png/thumbsup.png" alt="Joinha" class="thumbsup-icon"> 
         <p style="margin: 0; font-size: 16px; color: #9c6363;">
             Você ajudou a avaliar <span id="eval-count">0</span> 
             <br>sites na nossa rede colaborativa
