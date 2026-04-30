@@ -178,9 +178,12 @@ function limparBadge(tabId) {
 //trigger pra rodar o welcome
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install" || details.reason === "update") {
-    chrome.storage.local.get(["lgpdConsent"], (result) => {
-      if (result.lgpdConsent === undefined || result.lgpdConsent === false) {
-        chrome.storage.local.set({ lgpdConsent: false });
+    chrome.storage.local.get(["lgpdConsent", "protectionActive"], (result) => {
+      if (result.lgpdConsent === undefined) {
+        chrome.storage.local.set({ 
+          lgpdConsent: false,
+          protectionActive: false
+        });
         chrome.tabs.create({ url: "welcome.html" });
       }
     });

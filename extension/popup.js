@@ -9,7 +9,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateDisplayState() {
     chrome.storage.local.get(["protectionActive"], function (result) {
-      if (result.protectionActive === false) {
+      if (
+        result.protectionActive === false ||
+        result.protectionActive === undefined ||
+        !result.lgpdConsent
+      ) {
         toggle.checked = false;
         showOffScreen();
       } else {

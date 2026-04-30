@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const btnAgree = document.getElementById("btn-agree");
+  const btnDecline = document.getElementById("btn-decline");
   const container = document.querySelector(".container");
 
   btnAgree.addEventListener("click", () => {
@@ -20,5 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
       },
     );
+  });
+
+  btnDecline.addEventListener("click", () => {
+    chrome.management.uninstallSelf({ showConfirmDialog: true }, () => {
+      if (chrome.runtime.lastError) {
+        console.log("O usuário cancelou a desinstalação.");
+      }
+    });
   });
 });
