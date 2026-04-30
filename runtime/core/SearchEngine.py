@@ -85,6 +85,7 @@ class SearchEngine:
             return 0.0
 
     def gerar_vetor_consulta_tfidf(self, query_string: str):
+        """Executa o motor de vetorial retornando o vetor contendo os tokens da query recebida."""
         tokens_processados = process_text(query_string)
         if not tokens_processados:
             return {}

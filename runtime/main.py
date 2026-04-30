@@ -272,6 +272,8 @@ async def reportar_url(request: Request, dados: ReportRequest):
             "ip": client_ip,
             "estado": geo_data.get("estado", "Desconhecido"),
             "cidade": geo_data.get("cidade", "Desconhecido"),
+            "pais": geo_data.get("pais", "Desconhecido"), # Novo campo
+            "voto": dados.voto,
             "timestamp": datetime.now(ZoneInfo("America/Sao_Paulo"))
         })
 
