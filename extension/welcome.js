@@ -1,11 +1,12 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const btnAgree = document.getElementById('btn-agree');
-  const container = document.querySelector('.container');
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAgree = document.getElementById("btn-agree");
+  const container = document.querySelector(".container");
 
-  btnAgree.addEventListener('click', () => {
-    chrome.storage.local.set({ lgpdConsent: true, protectionActive: true }, () => {
-      
-      container.innerHTML = `
+  btnAgree.addEventListener("click", () => {
+    chrome.storage.local.set(
+      { lgpdConsent: true, protectionActive: true },
+      () => {
+        container.innerHTML = `
         <div style="font-family: 'Righteous', sans-serif; color: #52c47a; font-size: 32px; margin-bottom: 20px;">
           ✔ Tudo Certo!
         </div>
@@ -14,10 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </p>
       `;
 
-      setTimeout(() => {
-        window.close();
-      }, 1000);
-
-    });
+        setTimeout(() => {
+          window.close();
+        }, 1000);
+      },
+    );
   });
 });

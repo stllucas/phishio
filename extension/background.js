@@ -2,13 +2,12 @@
 const API_ENDPOINT = "https://phishio.duckdns.org";
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
- if (request.action === "analisarPagina") {
+  if (request.action === "analisarPagina") {
     chrome.storage.local.get(["protectionActive", "lgpdConsent"], (result) => {
-      
       if (!result.lgpdConsent) {
         limparBadge(sender.tab.id);
         sendResponse({ needsContent: false, protectionActive: false });
-        return; 
+        return;
       }
 
       if (result.protectionActive !== false) {
@@ -54,7 +53,10 @@ async function verificarRapida(url, tabId, sendResponse) {
     });
     const resultado = await response.json();
 
-    if (resultado.status === "needs_content" || resultado.status === "unknown") {
+    if (
+      resultado.status === "needs_content" ||
+      resultado.status === "unknown"
+    ) {
       sendResponse({ needsContent: true, protectionActive: true });
     } else {
       await chrome.storage.local.set({ [`status_${tabId}`]: resultado.status });
@@ -69,7 +71,7 @@ async function verificarRapida(url, tabId, sendResponse) {
 
 async function processarAnaliseCompleta(dados, tabId) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const response = await fetch(`${API_ENDPOINT}/check_url`, {
@@ -91,22 +93,25 @@ async function processarAnaliseCompleta(dados, tabId) {
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error(`Erro na análise (CORS, Payload Size ou Timeout) para ${dados.url}:`, error);
+    console.error(
+      `Erro na análise (CORS, Payload Size ou Timeout) para ${dados.url}:`,
+      error,
+    );
   }
 }
 
 function setAnalizandoStatus(tabId) {
   chrome.action.setBadgeBackgroundColor({ tabId: tabId, color: "#808080" });
   chrome.action.setBadgeText({ tabId: tabId, text: "..." });
-  
-  chrome.action.setIcon({ 
-    tabId: tabId, 
+
+  chrome.action.setIcon({
+    tabId: tabId,
     path: {
-      "16": "icons/shield-inactive-16.png",
-      "32": "icons/shield-inactive-32.png",
-      "48": "icons/shield-inactive-48.png",
-      "128": "icons/shield-inactive-128.png"
-    } 
+      16: "icons/shield-inactive-16.png",
+      32: "icons/shield-inactive-32.png",
+      48: "icons/shield-inactive-48.png",
+      128: "icons/shield-inactive-128.png",
+    },
   });
 }
 
@@ -125,38 +130,38 @@ async function enviarReporteParaAPI(url, vote) {
 
 function atualizarInterface(status, tabId) {
   let iconPaths = {
-    "16": "icons/shield-inactive-16.png",
-    "32": "icons/shield-inactive-32.png",
-    "48": "icons/shield-inactive-48.png",
-    "128": "icons/shield-inactive-128.png"
+    16: "icons/shield-inactive-16.png",
+    32: "icons/shield-inactive-32.png",
+    48: "icons/shield-inactive-48.png",
+    128: "icons/shield-inactive-128.png",
   };
   let badgeText = "";
   let badgeColor = "#757575";
 
   if (status === "phishing") {
     iconPaths = {
-      "16": "icons/shield-danger-16.png",
-      "32": "icons/shield-danger-32.png",
-      "48": "icons/shield-danger-48.png",
-      "128": "icons/shield-danger-128.png"
+      16: "icons/shield-danger-16.png",
+      32: "icons/shield-danger-32.png",
+      48: "icons/shield-danger-48.png",
+      128: "icons/shield-danger-128.png",
     };
     badgeText = "X";
     badgeColor = "#F04646";
   } else if (status === "suspect" || status === "suspicious") {
     iconPaths = {
-      "16": "icons/shield-warning-16.png",
-      "32": "icons/shield-warning-32.png",
-      "48": "icons/shield-warning-48.png",
-      "128": "icons/shield-warning-128.png"
+      16: "icons/shield-warning-16.png",
+      32: "icons/shield-warning-32.png",
+      48: "icons/shield-warning-48.png",
+      128: "icons/shield-warning-128.png",
     };
     badgeText = "!";
     badgeColor = "#F7E96D";
   } else if (status === "safe" || status === "secure") {
     iconPaths = {
-      "16": "icons/shield-safe-16.png",
-      "32": "icons/shield-safe-32.png",
-      "48": "icons/shield-safe-48.png",
-      "128": "icons/shield-safe-128.png"
+      16: "icons/shield-safe-16.png",
+      32: "icons/shield-safe-32.png",
+      48: "icons/shield-safe-48.png",
+      128: "icons/shield-safe-128.png",
     };
   }
 
@@ -173,13 +178,11 @@ function limparBadge(tabId) {
 //trigger pra rodar o welcome
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install" || details.reason === "update") {
-    
     chrome.storage.local.get(["lgpdConsent"], (result) => {
       if (result.lgpdConsent === undefined || result.lgpdConsent === false) {
         chrome.storage.local.set({ lgpdConsent: false });
         chrome.tabs.create({ url: "welcome.html" });
       }
     });
-    
   }
 });

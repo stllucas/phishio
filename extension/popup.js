@@ -34,61 +34,62 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-function realizarReporte(voto, botaoClicado) {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    const urlAtual = tabs[0].url;
-    const storageKey = `voted_${btoa(urlAtual)}`;
+  function realizarReporte(voto, botaoClicado) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const urlAtual = tabs[0].url;
+      const storageKey = `voted_${btoa(urlAtual)}`;
 
-    chrome.storage.local.get([storageKey], (res) => {
-      if (res[storageKey]) {
-        const container = botaoClicado.parentNode.parentNode;
-        const aviso = document.createElement("div");
-        aviso.style.color = "#2e7d32";
-        aviso.style.fontSize = "12px";
-        aviso.style.marginTop = "10px";
-        aviso.style.fontWeight = "bold";
-        aviso.style.textAlign = "center";
-        aviso.textContent = "✔ Você já reportou este site. Estamos computando sua opinião!";
-        
-        container.appendChild(aviso);
-        botaoClicado.disabled = true;
-        return;
-      }
+      chrome.storage.local.get([storageKey], (res) => {
+        if (res[storageKey]) {
+          const container = botaoClicado.parentNode.parentNode;
+          const aviso = document.createElement("div");
+          aviso.style.color = "#2e7d32";
+          aviso.style.fontSize = "12px";
+          aviso.style.marginTop = "10px";
+          aviso.style.fontWeight = "bold";
+          aviso.style.textAlign = "center";
+          aviso.textContent =
+            "✔ Você já reportou este site. Estamos computando sua opinião!";
 
-      const textoOriginal = botaoClicado.innerHTML;
-      botaoClicado.innerHTML = "<strong>Enviando...</strong>";
-      botaoClicado.disabled = true;
-
-      const erroAntigo = document.getElementById("phishio-inline-error");
-      if (erroAntigo) erroAntigo.remove();
-
-      chrome.runtime.sendMessage(
-        { action: "reportUrl", url: urlAtual, vote: voto },
-        (response) => {
-          if (response && response.success) {
-            chrome.storage.local.set({ [storageKey]: true });
-            showSuccessMessage(voto === 1 ? "fake" : "secure");
-          } else {
-            botaoClicado.innerHTML = textoOriginal;
-            botaoClicado.disabled = false;
-
-            const erroDiv = document.createElement("div");
-            erroDiv.id = "phishio-inline-error";
-            erroDiv.style.color = "#c62828";
-            erroDiv.style.fontSize = "12px";
-            erroDiv.style.marginTop = "12px";
-            erroDiv.style.fontWeight = "bold";
-            erroDiv.style.textAlign = "center";
-            erroDiv.style.width = "100%";
-            erroDiv.innerHTML = "❌ Erro ao enviar reporte. Tente novamente.";
-
-            botaoClicado.parentNode.parentNode.appendChild(erroDiv);
-          }
+          container.appendChild(aviso);
+          botaoClicado.disabled = true;
+          return;
         }
-      );
+
+        const textoOriginal = botaoClicado.innerHTML;
+        botaoClicado.innerHTML = "<strong>Enviando...</strong>";
+        botaoClicado.disabled = true;
+
+        const erroAntigo = document.getElementById("phishio-inline-error");
+        if (erroAntigo) erroAntigo.remove();
+
+        chrome.runtime.sendMessage(
+          { action: "reportUrl", url: urlAtual, vote: voto },
+          (response) => {
+            if (response && response.success) {
+              chrome.storage.local.set({ [storageKey]: true });
+              showSuccessMessage(voto === 1 ? "fake" : "secure");
+            } else {
+              botaoClicado.innerHTML = textoOriginal;
+              botaoClicado.disabled = false;
+
+              const erroDiv = document.createElement("div");
+              erroDiv.id = "phishio-inline-error";
+              erroDiv.style.color = "#c62828";
+              erroDiv.style.fontSize = "12px";
+              erroDiv.style.marginTop = "12px";
+              erroDiv.style.fontWeight = "bold";
+              erroDiv.style.textAlign = "center";
+              erroDiv.style.width = "100%";
+              erroDiv.innerHTML = "❌ Erro ao enviar reporte. Tente novamente.";
+
+              botaoClicado.parentNode.parentNode.appendChild(erroDiv);
+            }
+          },
+        );
+      });
     });
-  });
-}
+  }
   function atualizarContadorUI() {
     chrome.storage.local.get(["totalAvaliacoes"], (result) => {
       const counts = document.querySelectorAll("#eval-count");
@@ -132,7 +133,8 @@ function realizarReporte(voto, botaoClicado) {
             <button class="report-btn" id="go-to-feedback">Reportar site suspeito</button>
         </div>
     `;
-    document.getElementById("go-to-feedback").onclick = () => showFeedbackScreen(showSecureScreen);
+    document.getElementById("go-to-feedback").onclick = () =>
+      showFeedbackScreen(showSecureScreen);
   }
 
   function showSuspeitoScreen() {
@@ -175,21 +177,21 @@ function realizarReporte(voto, botaoClicado) {
     `;
 
     document.getElementById("danger-back-btn").onclick = () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0].id) {
-            chrome.tabs.goBack(tabs[0].id);
-            window.close();
+          chrome.tabs.goBack(tabs[0].id);
+          window.close();
         }
-    });
-};
-    
+      });
+    };
+
     document.getElementById("danger-ignore-btn").onclick = () => window.close();
 
     document.getElementById("false-positive-link").onclick = (e) => {
-    e.preventDefault();
-    showFeedbackScreen(showPerigoScreen);
+      e.preventDefault();
+      showFeedbackScreen(showPerigoScreen);
     };
-}
+  }
 
   function showFeedbackScreen(voltarPara) {
     addBackButton();
@@ -211,11 +213,13 @@ function realizarReporte(voto, botaoClicado) {
         </div>
     `;
 
-    document.getElementById("report-fake-btn").onclick = (e) => realizarReporte(1, e.currentTarget);
-    document.getElementById("report-secure-btn").onclick = (e) => realizarReporte(-1, e.currentTarget);
+    document.getElementById("report-fake-btn").onclick = (e) =>
+      realizarReporte(1, e.currentTarget);
+    document.getElementById("report-secure-btn").onclick = (e) =>
+      realizarReporte(-1, e.currentTarget);
 
     document.getElementById("btn-back").onclick = voltarPara;
-}
+  }
 
   function showSuccessMessage(type) {
     let title =
@@ -246,15 +250,15 @@ function realizarReporte(voto, botaoClicado) {
     `;
 
     document.getElementById("success-action-btn").onclick = () => {
-    if (type === "fake" || type === "suspect") {
+      if (type === "fake" || type === "suspect") {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome.tabs.goBack(tabs[0].id);
-            window.close();
+          chrome.tabs.goBack(tabs[0].id);
+          window.close();
         });
-    } else {
+      } else {
         showSecureScreen();
-    }
-};
+      }
+    };
     atualizarContadorUI();
   }
 
@@ -276,15 +280,18 @@ function realizarReporte(voto, botaoClicado) {
 
   toggle.addEventListener("change", function () {
     const isActive = this.checked;
-    
+
     chrome.storage.local.set({ protectionActive: isActive }, () => {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (tabs[0]) {
           const tabId = tabs[0].id;
-          
+
           if (!isActive) {
             chrome.action.setBadgeText({ tabId: tabId, text: "" });
-            chrome.action.setIcon({ tabId: tabId, path: "images/shield-inactive-48.png" });
+            chrome.action.setIcon({
+              tabId: tabId,
+              path: "images/shield-inactive-48.png",
+            });
           } else {
             chrome.tabs.reload(tabId);
           }
