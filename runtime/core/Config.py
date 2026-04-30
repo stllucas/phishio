@@ -1,7 +1,7 @@
 """Configurações globais e mapeamento de diretórios do projeto."""
 from pathlib import Path
 
-BASE_PATH = Path(__file__).resolve().parent.parent.parent
+BASE_PATH = Path(__file__).resolve().parent.parent
 
 DATA_DIR = BASE_PATH / 'data'
 RUNTIME_DIR = BASE_PATH / 'runtime'
