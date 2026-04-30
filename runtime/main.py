@@ -18,8 +18,7 @@ from pydantic import BaseModel, Field
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# IPs de proxies reversos confiáveis (ex: Nginx, AWS ALB, Cloudflare).
-TRUSTED_PROXIES = {"127.0.0.1", "::1", "206.189.204.241"}
+TRUSTED_PROXIES = {"127.0.0.1", "::1", "206.189.204.241", "172.17.0.1"}
 
 logger.info("Iniciando o carregamento prévio do Motor Vetorial")
 search_engine = SearchEngine()
