@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const innerContent = document.getElementById("inner-content");
 
   function updateDisplayState() {
-    chrome.storage.local.get(["protectionActive"], function (result) {
+    chrome.storage.local.get(["protectionActive", "lgpdConsent"], function (result) {
       if (
         result.protectionActive === false ||
         result.protectionActive === undefined ||
