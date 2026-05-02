@@ -1,4 +1,3 @@
-/** Script responsável pela lógica de interface e interação do usuário no popup da extensão. */
 document.addEventListener("DOMContentLoaded", function () {
   const toggle = document.getElementById("protection-toggle");
   const mainIcon = document.getElementById("main-icon");
@@ -9,11 +8,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateDisplayState() {
     chrome.storage.local.get(["protectionActive", "lgpdConsent"], function (result) {
-      if (
-        result.protectionActive === false ||
-        result.protectionActive === undefined ||
-        !result.lgpdConsent
-      ) {
+      if (result.lgpdConsent !== true) {
+        toggle.checked = false;
+        toggle.disabled = true;
+        showOffScreen();
+        statusBadge.textContent = "Aceite os Termos (LGPD) para usar";
+        return; 
+      }
+
+      toggle.disabled = false;
+
+      if (result.protectionActive === false || result.protectionActive === undefined) {
         toggle.checked = false;
         showOffScreen();
       } else {
@@ -94,6 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
+  
   function atualizarContadorUI() {
     chrome.storage.local.get(["totalAvaliacoes"], (result) => {
       const counts = document.querySelectorAll("#eval-count");
@@ -182,8 +188,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("danger-back-btn").onclick = () => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0].id) {
-          chrome.tabs.goBack(tabs[0].id);
+        if (tabs.length > 0) {
+          chrome.tabs.goBack(tabs[0].id, () => {
+            if (chrome.runtime.lastError) {
+              chrome.tabs.update(tabs[0].id, { url: "https://www.google.com" });
+            }
+          });
           window.close();
         }
       });
@@ -256,8 +266,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("success-action-btn").onclick = () => {
       if (type === "fake" || type === "suspect") {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          chrome.tabs.goBack(tabs[0].id);
-          window.close();
+          if (tabs.length > 0) {
+            chrome.tabs.goBack(tabs[0].id, () => {
+              if (chrome.runtime.lastError) {
+                chrome.tabs.update(tabs[0].id, { url: "https://www.google.com" });
+              }
+            });
+            window.close();
+          }
         });
       } else {
         showSecureScreen();
@@ -294,7 +310,12 @@ document.addEventListener("DOMContentLoaded", function () {
             chrome.action.setBadgeText({ tabId: tabId, text: "" });
             chrome.action.setIcon({
               tabId: tabId,
-              path: "images/shield-inactive-48.png",
+              path: {
+                "16": "icons/shield-inactive-16.png",
+                "32": "icons/shield-inactive-32.png",
+                "48": "icons/shield-inactive-48.png",
+                "128": "icons/shield-inactive-128.png"
+              }
             });
           } else {
             chrome.tabs.reload(tabId);
