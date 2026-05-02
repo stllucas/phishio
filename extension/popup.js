@@ -1,3 +1,4 @@
+/** Script responsável pela lógica de interface e interação do usuário no popup da extensão. */
 document.addEventListener("DOMContentLoaded", function () {
   const toggle = document.getElementById("protection-toggle");
   const mainIcon = document.getElementById("main-icon");
