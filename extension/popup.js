@@ -7,43 +7,57 @@ document.addEventListener("DOMContentLoaded", function () {
   const boxTitle = document.getElementById("box-title");
   const innerContent = document.getElementById("inner-content");
 
+  /**
+   * Atualiza o estado de exibição principal verificando o consentimento LGPD e status da proteção na aba atual.
+   */
   function updateDisplayState() {
-    chrome.storage.local.get(["protectionActive", "lgpdConsent"], function (result) {
-      if (result.lgpdConsent !== true) {
-        toggle.checked = false;
-        toggle.disabled = true;
-        showOffScreen();
-        statusBadge.textContent = "Aceite os Termos (LGPD) para usar";
-        return; 
-      }
+    chrome.storage.local.get(
+      ["protectionActive", "lgpdConsent"],
+      function (result) {
+        if (result.lgpdConsent !== true) {
+          toggle.checked = false;
+          toggle.disabled = true;
+          showOffScreen();
+          statusBadge.textContent = "Aceite os Termos (LGPD) para usar";
+          return;
+        }
 
-      toggle.disabled = false;
+        toggle.disabled = false;
 
-      if (result.protectionActive === false || result.protectionActive === undefined) {
-        toggle.checked = false;
-        showOffScreen();
-      } else {
-        toggle.checked = true;
-        chrome.tabs.query(
-          { active: true, currentWindow: true },
-          function (tabs) {
-            if (tabs[0]) {
-              const tabId = tabs[0].id;
-              chrome.storage.local.get([`status_${tabId}`], function (data) {
-                const status = data[`status_${tabId}`] || "safe";
+        if (
+          result.protectionActive === false ||
+          result.protectionActive === undefined
+        ) {
+          toggle.checked = false;
+          showOffScreen();
+        } else {
+          toggle.checked = true;
+          chrome.tabs.query(
+            { active: true, currentWindow: true },
+            function (tabs) {
+              if (tabs[0]) {
+                const tabId = tabs[0].id;
+                chrome.storage.local.get([`status_${tabId}`], function (data) {
+                  const status = data[`status_${tabId}`] || "safe";
 
-                if (status === "phishing") showPerigoScreen();
-                else if (status === "suspect" || status === "suspicious")
-                  showSuspeitoScreen();
-                else showSecureScreen();
-              });
-            }
-          },
-        );
-      }
-    });
+                  if (status === "phishing") showPerigoScreen();
+                  else if (status === "suspect" || status === "suspicious")
+                    showSuspeitoScreen();
+                  else showSecureScreen();
+                });
+              }
+            },
+          );
+        }
+      },
+    );
   }
 
+  /**
+   * Submete um reporte feito pelo usuário à API e atualiza a interface local em caso de sucesso.
+   * @param {number} voto - Voto atribuído (1 para suspeito/falso, -1 para seguro).
+   * @param {HTMLElement} botaoClicado - Elemento do DOM que disparou a ação, usado para gerenciar o estado do botão.
+   */
   function realizarReporte(voto, botaoClicado) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       const urlAtual = tabs[0].url;
@@ -100,7 +114,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
-  
+
+  /**
+   * Atualiza o contador de avaliações feitas pelo usuário que são mostradas na interface de usuário.
+   */
   function atualizarContadorUI() {
     chrome.storage.local.get(["totalAvaliacoes"], (result) => {
       const counts = document.querySelectorAll("#eval-count");
@@ -110,6 +127,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   updateDisplayState();
 
+  /**
+   * Exibe a tela correspondente quando a extensão é desligada.
+   */
   function showOffScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-inactive-128.svg";
@@ -129,6 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
     atualizarContadorUI();
   }
 
+  /**
+   * Exibe a tela de segurança quando o site for considerado seguro (score menor ou igual a base aceita).
+   */
   function showSecureScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-active-128.svg";
@@ -148,6 +171,9 @@ document.addEventListener("DOMContentLoaded", function () {
       showFeedbackScreen(showSecureScreen);
   }
 
+  /**
+   * Exibe a tela de alerta moderado para sites suspeitos, encorajando a colaboração do usuário.
+   */
   function showSuspeitoScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-suspicious-128.svg";
@@ -168,6 +194,9 @@ document.addEventListener("DOMContentLoaded", function () {
       realizarReporte(1, e.currentTarget);
   }
 
+  /**
+   * Exibe a tela de perigo extremo, alertando categoricamente sobre phishing e dificultando a continuidade.
+   */
   function showPerigoScreen() {
     removeBackButton();
     mainIcon.src = "images/svg/shield-danger-128.svg";
@@ -208,6 +237,10 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 
+  /**
+   * Exibe a tela de feedback (crowdsourcing) permitindo ao usuário indicar classificação incorreta do sistema.
+   * @param {Function} voltarPara - Função callback para retornar ao estado da UI original (ex: showSecureScreen).
+   */
   function showFeedbackScreen(voltarPara) {
     addBackButton();
     mainIcon.src = "images/svg/shield-feedback-128.svg";
@@ -236,6 +269,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("btn-back").onclick = voltarPara;
   }
 
+  /**
+   * Exibe a mensagem de sucesso pós-reporte e oferece a opção de sair do site de forma segura, se for perigoso.
+   * @param {string} type - O tipo de status classificado ("fake", "suspect" ou "secure").
+   */
   function showSuccessMessage(type) {
     let title =
       type === "fake" || type === "suspect"
@@ -270,7 +307,9 @@ document.addEventListener("DOMContentLoaded", function () {
           if (tabs.length > 0) {
             chrome.tabs.goBack(tabs[0].id, () => {
               if (chrome.runtime.lastError) {
-                chrome.tabs.update(tabs[0].id, { url: "https://www.google.com" });
+                chrome.tabs.update(tabs[0].id, {
+                  url: "https://www.google.com",
+                });
               }
             });
             window.close();
@@ -283,6 +322,9 @@ document.addEventListener("DOMContentLoaded", function () {
     atualizarContadorUI();
   }
 
+  /**
+   * Adiciona um botão de retorno no canto superior esquerdo da extensão, caso não exista.
+   */
   function addBackButton() {
     if (!document.getElementById("btn-back")) {
       const btn = document.createElement("button");
@@ -294,6 +336,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /**
+   * Remove o botão de retorno do DOM, se ele existir, para limpar o layout.
+   */
   function removeBackButton() {
     const btn = document.getElementById("btn-back");
     if (btn) btn.remove();
@@ -312,11 +357,11 @@ document.addEventListener("DOMContentLoaded", function () {
             chrome.action.setIcon({
               tabId: tabId,
               path: {
-                "16": "icons/shield-inactive-16.png",
-                "32": "icons/shield-inactive-32.png",
-                "48": "icons/shield-inactive-48.png",
-                "128": "icons/shield-inactive-128.png"
-              }
+                16: "icons/shield-inactive-16.png",
+                32: "icons/shield-inactive-32.png",
+                48: "icons/shield-inactive-48.png",
+                128: "icons/shield-inactive-128.png",
+              },
             });
           } else {
             chrome.tabs.reload(tabId);

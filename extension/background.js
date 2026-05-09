@@ -43,6 +43,12 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   chrome.storage.local.remove(`status_${tabId}`);
 });
 
+/**
+ * Realiza a verificação rápida de reputação da URL acionando o endpoint de cache da API de backend.
+ * @param {string} url - A URL a ser verificada.
+ * @param {number} tabId - O ID da aba respectiva para atualização visual.
+ * @param {Function} sendResponse - Função callback para comunicar a extensão de content script.
+ */
 async function verificarRapida(url, tabId, sendResponse) {
   setAnalizandoStatus(tabId);
   try {
@@ -69,6 +75,11 @@ async function verificarRapida(url, tabId, sendResponse) {
   }
 }
 
+/**
+ * Processa a análise vetorial acionando o motor completo (quando há ocorrência de URL Zero-hora).
+ * @param {Object} dados - O objeto com o payload contendo URL, texto do DOM e conteúdo extraído.
+ * @param {number} tabId - O ID da aba analisada.
+ */
 async function processarAnaliseCompleta(dados, tabId) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -100,6 +111,10 @@ async function processarAnaliseCompleta(dados, tabId) {
   }
 }
 
+/**
+ * Altera os visuais da extensão para indicar que o site da aba atual está sob análise ativa (ícone cinza neutro).
+ * @param {number} tabId - O ID da aba.
+ */
 function setAnalizandoStatus(tabId) {
   chrome.action.setBadgeBackgroundColor({ tabId: tabId, color: "#808080" });
   chrome.action.setBadgeText({ tabId: tabId, text: "..." });
@@ -115,6 +130,12 @@ function setAnalizandoStatus(tabId) {
   });
 }
 
+/**
+ * Dispara a solicitação de reporte (crowdsourcing) feita pelo usuário ao endpoint de reputação colaborativa.
+ * @param {string} url - A URL avaliada pelo usuário.
+ * @param {number} vote - O voto do usuário sobre a índole da página (1 = ameaça, -1 = íntegro).
+ * @returns {Promise<boolean>} Sucesso da transação.
+ */
 async function enviarReporteParaAPI(url, vote) {
   try {
     const response = await fetch(`${API_ENDPOINT}/reportar_url`, {
@@ -128,6 +149,11 @@ async function enviarReporteParaAPI(url, vote) {
   }
 }
 
+/**
+ * Responsável por rotear os resultados da API, refletindo os diferentes ícones e cores conforme a gravidade.
+ * @param {string} status - O status de severidade provido pelo sistema ('phishing', 'suspect', 'safe').
+ * @param {number} tabId - A aba afetada pela mudança visual.
+ */
 function atualizarInterface(status, tabId) {
   let iconPaths = {
     16: "icons/shield-inactive-16.png",
@@ -170,19 +196,25 @@ function atualizarInterface(status, tabId) {
   chrome.action.setBadgeBackgroundColor({ tabId: tabId, color: badgeColor });
 }
 
+/**
+ * Restabelece a limpeza de elementos flutuantes (badge e tooltip) no ícone para seu estado inativo.
+ * @param {number} tabId - O ID da aba.
+ */
 function limparBadge(tabId) {
   chrome.action.setBadgeText({ tabId: tabId, text: "" });
   chrome.action.setIcon({ tabId: tabId, path: "icons/shield-inactive-48.png" });
 }
 
-//trigger pra rodar o welcome
+/**
+ * Gatilho de instalação e atualização utilizado para forçar a renderização da interface inicial de aceite LGPD (welcome.html).
+ */
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install" || details.reason === "update") {
     chrome.storage.local.get(["lgpdConsent", "protectionActive"], (result) => {
       if (result.lgpdConsent === undefined) {
-        chrome.storage.local.set({ 
+        chrome.storage.local.set({
           lgpdConsent: false,
-          protectionActive: false
+          protectionActive: false,
         });
         chrome.tabs.create({ url: "welcome.html" });
       }

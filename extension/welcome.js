@@ -1,3 +1,7 @@
+/**
+ * Script responsável pela interface de boas-vindas, coletando o aceite da LGPD 
+ * pelo usuário e inicializando as flags de proteção da extensão.
+ */
 document.addEventListener("DOMContentLoaded", () => {
   const btnAgree = document.getElementById("btn-agree");
   const btnDecline = document.getElementById("btn-decline");
