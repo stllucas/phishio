@@ -1,3 +1,4 @@
+# Python / Environments
 venv/
 .venv/
 ENV/
@@ -9,42 +10,67 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# Testing / Coverage
 .pytest_cache/
 .coverage
 htmlcov/
+
+# IDEs / Editors
 .vscode/
 .idea/
+
+# OS / System files
 .DS_Store
 Thumbs.db
+
+# Temporary / Backup files
 *.swp
 *.swo
 *~
 *.tmp
 *.bak
 *.lnk
+
+# Generic Data & Artifacts
+*.json
+*.csv
+*.bin
+*.tar.gz
+*.db
+*.sqlite
+*.sqlite3
+*.pkl
+*.parquet
+
+# Project specific Data / Logs / Maintenance
 data/
 logs/
+api.log
+Locust_*.html
 maintenance/data-raw/
 maintenance/data-processed/
 maintenance/provas_unitarias/
 maintenance/html_pages_temp/
 imagens-comportamentos/
-*.json
-*.csv
-*.bin
-*.tar.gz
+docs/Relatórios-RIWRS
+
+# Secrets / Credentials
 secrets/
 secrets
 .env
 .env.local
 *.pem
 *.key
-docs/Relatórios-RIWRS
+
+# Miscellaneous Files
 setup_pessoal.bat
 extension/overlay.css.bkp
+infra
+
+# Exceptions (Do not ignore these)
 !/extension/manifest.json
 !runtime/core/*.json
 !maintenance/scripts/**/*.py
 !README.md
 !requirements.txt
-api.log

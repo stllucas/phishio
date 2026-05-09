@@ -1,24 +1,32 @@
-# Arquivo de configuração de arquivos e diretórios ignorados pelo Docker.
-maintenance/
+# Python / Environments / Cache
 venv/
-docs/
-extension/
-.git/
-infra/
-
 __pycache__/
 *.pyc
+
+# Logs & System Files
 *.log
 .DS_Store
 
+# Git
+.git/
+
+# Testing
+.pytest_cache/
+pytest.ini
+tests/
+
+# Unnecessary Project Directories for Runtime
+maintenance/
+docs/
+extension/
+infra/
+
+# Local Scripts
+setup.bash
+setup.bat
+
+# Unnecessary Data & Artifacts
 data/*.csv
 data/execution_log/
 data/vocabulario.json
 data/idf.json
-
-setup.bash
-setup.bat
-
-.pytest_cache/
-pytest.ini
-tests/
