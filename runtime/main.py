@@ -1,22 +1,37 @@
 """Módulo principal da API FastAPI para detecção de phishing."""
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from pydantic import BaseModel, Field
+from google.oauth2 import service_account
+import requests
+from google.api_core.client_options import ClientOptions
+from google.cloud import firestore
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Request
+from core.GeoLocator import get_location_by_ip
+from core.SearchEngine import SearchEngine
+from core.Config import SECRETS_FILE
+import asyncio
 import hashlib
 import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from typing import Optional
 
-from core.Config import SECRETS_FILE
-from core.SearchEngine import SearchEngine
-from core.GeoLocator import get_location_by_ip
+os.environ["GRPC_PYTHON_BUILD_SYSTEM_OPENSSL"] = "1"
+os.environ["GOOGLE_AUTH_HTTPLIB2_MAX_RETRIES"] = "5"
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from google.cloud import firestore
-from google.oauth2 import service_account
-from pydantic import BaseModel, Field
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 
 TRUSTED_PROXIES = {"127.0.0.1", "::1", "206.189.204.241", "172.17.0.1"}
 
@@ -50,10 +65,18 @@ try:
         raise FileNotFoundError(
             f"Arquivo de credenciais não encontrado em: {SECRETS_FILE.resolve()}. Verifique se o arquivo 'secrets' está na pasta 'runtime'."
         )
+
+    adapter = requests.adapters.HTTPAdapter(
+        pool_connections=100, pool_maxsize=100)
+    session = requests.Session()
+    session.mount("https://", adapter)
+
     gcp_credentials = service_account.Credentials.from_service_account_file(
         SECRETS_FILE
     )
-    db = firestore.AsyncClient(credentials=gcp_credentials)
+
+    db = firestore.AsyncClient(
+        credentials=gcp_credentials, client_options=ClientOptions())
     logger.info(
         "Cliente Firestore inicializado com sucesso a partir do arquivo de credenciais."
     )
@@ -123,6 +146,21 @@ def generate_firestore_id(url: str) -> str:
     return hashlib.sha256(u.encode("utf-8")).hexdigest()
 
 
+async def log_vote_audit(url_id: str, voto: int, novo_status: str):
+    """
+    Função utilitária assíncrona para registrar o log de auditoria de votos.
+    """
+    timestamp = datetime.now(ZoneInfo("America/Sao_Paulo")
+                             ).strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = f"{timestamp} | [SUCCESS] Incremento Concluído | ID: {url_id} | Voto: {voto} | Novo Status: {novo_status}\n"
+
+    def write_log():
+        with open("audit_votes.log", "a", encoding="utf-8") as f:
+            f.write(log_entry)
+
+    await asyncio.to_thread(write_log)
+
+
 @app.post("/check_url", response_model=CheckUrlResponse)
 async def check_url(request: CheckUrlRequest):
     """Verifica o status de segurança de uma URL validando no Cache do Firestore ou acionando a análise vetorial."""
@@ -185,9 +223,9 @@ async def check_url(request: CheckUrlRequest):
     logger.info(f"Acionando motor vetorial para {request.url}")
     try:
         texto_base = request.content if request.content else request.dom
-        vetor_query = search_engine.gerar_vetor_consulta_tfidf(texto_base)
 
-        resultados = search_engine.ranquear_documentos_completo(vetor_query)
+        vetor_query = await asyncio.to_thread(search_engine.gerar_vetor_consulta_tfidf, texto_base)
+        resultados = await asyncio.to_thread(search_engine.ranquear_documentos_completo, vetor_query)
 
         if resultados:
             maior_score = resultados[0][1]
@@ -293,10 +331,17 @@ async def reportar_url(request: Request, dados: ReportRequest):
         doc = await doc_ref.get()
         if doc.exists:
             score = doc.to_dict().get("consensus_score", 0)
+            status_atual = doc.to_dict().get("status", "safe")
+            novo_status = status_atual
+
             if score >= 15:
-                await doc_ref.update({"status": "phishing"})
+                novo_status = "phishing"
+                await doc_ref.update({"status": novo_status})
             elif score < 0:
-                await doc_ref.update({"status": "safe"})
+                novo_status = "safe"
+                await doc_ref.update({"status": novo_status})
+
+            await log_vote_audit(url_id, dados.voto, novo_status)
 
         logger.info(
             f"Reporte Completo: {dados.url} | IP: {client_ip} | Voto: {dados.voto}")
@@ -306,7 +351,6 @@ async def reportar_url(request: Request, dados: ReportRequest):
         logger.error(f"Erro no processamento unificado: {e}")
         raise HTTPException(
             status_code=500, detail="Erro interno ao processar colaboração.")
-# main.py (adicione perto das outras rotas, por exemplo, após /reportar_url)
 
 
 class ConsentRequest(BaseModel):

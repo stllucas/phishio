@@ -8,9 +8,9 @@ RUNTIME_DIR = BASE_PATH / 'runtime'
 
 DOCUMENT_MAP_PATH = DATA_DIR / 'document_map.json'
 POSTINGS_BIN_PATH = DATA_DIR / 'postings.bin'
-VOCAB_PATH        = DATA_DIR / 'vocabulario.json'
-IDF_PATH          = DATA_DIR / 'idf.json'
-NORMS_PATH        = DATA_DIR / 'norms.json'
+VOCAB_PATH = DATA_DIR / 'vocabulario.json'
+IDF_PATH = DATA_DIR / 'idf.json'
+NORMS_PATH = DATA_DIR / 'norms.json'
 
 SECRETS_FILE = RUNTIME_DIR / 'secrets'
 

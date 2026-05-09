@@ -17,3 +17,6 @@ pytest-cov
 pytest
 pytest-asyncio
 httpx
+locust
+scikit-learn
+numpy
