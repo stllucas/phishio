@@ -82,25 +82,24 @@ goto :MigrationEnd
 
 :MigrationEnd
 echo.
-echo ==========================================================
-echo AMBIENTE PHISHIO ATUALIZADO E CONFIGURADO COM SUCESSO!
-echo ==========================================================
+echo ==============================================================
+echo           AMBIENTE CONFIGURADO COM SUCESSO (WINDOWS)
+echo ==============================================================
 echo.
-echo [COMO INICIAR A SUA API / BACK-END]
-echo  1. Digite no terminal:  .\venv\Scripts\activate
-echo  2. Navegue ate a pasta: cd backend
-echo  3. Inicie o servidor:  py -m uvicorn main:app --reload
+echo [BACKEND - COMO INICIAR]
+echo   1. Ative o venv:     .\venv\Scripts\activate
+echo   2. Acesse a pasta:   cd runtime
+echo   3. Inicie a API:     py -m uvicorn main:app --reload
 echo.
-echo [COMO TESTAR A EXTENSAO / FRONT-END]
-echo  1. Abra o Chrome e acesse a URL: chrome://extensions/
-echo  2. Ative o "Modo do desenvolvedor" (canto superior direito).
-echo  3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension' deste projeto.
+echo [FRONTEND - COMO INSTALAR A EXTENSAO]
+echo   1. Acesse chrome://extensions/ no Google Chrome
+echo   2. Ative o "Modo do desenvolvedor"
+echo   3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension'
 echo.
-echo [COMO TESTAR A API (TESTES AUTOMATIZADOS)]
-echo  1. Certifique-se de que o ambiente virtual (venv) esta ativado.
-echo  2. Na raiz do projeto, digite: pytest
-echo.
-echo Para mais informacoes, consulte o arquivo README.md
+echo [TESTES]
+echo   - Testes Automatizados: pytest (na raiz com venv ativado)
+echo   - Stress Test: py tests\start_stress_test.py
+echo ==============================================================
 echo.
 
 pause
