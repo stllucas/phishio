@@ -11,7 +11,7 @@ async function iniciarAnalise() {
   try {
     const resposta = await sendMessageComTimeout(
       { action: "analisarPagina", url: url },
-      2000,
+      10000,
     );
 
     if (resposta && resposta.needsContent) {
