@@ -47,7 +47,7 @@ function sendMessageComTimeout(mensagem, ms) {
 }
 
 /**
- * Extrai os textos visíveis e a estrutura DOM limitando seu tamanho para evitar sobrecarga no servidor e os envia.
+ * Extrai os textos visíveis e a estrutura DOM.
  * @param {string} url - A URL completa da página a ser analisada.
  */
 function coletarEEnviarConteudo(url) {
@@ -59,13 +59,10 @@ function coletarEEnviarConteudo(url) {
   let textoConteudo = document.body.innerText || "";
   let textoDom = cloneDoc.outerHTML || "";
 
-  /** Limita o tamanho do payload para evitar o erro HTTP 413 (Payload Too Large) no Nginx/Servidor. */
-  const MAX_CHARACTERS = 150000;
-
   const dadosCompletos = {
     url: url,
-    content: textoConteudo.substring(0, MAX_CHARACTERS),
-    dom: textoDom.substring(0, MAX_CHARACTERS),
+    content: textoConteudo,
+    dom: textoDom,
   };
   chrome.runtime.sendMessage({
     action: "enviarDadosCompletos",
