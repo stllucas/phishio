@@ -77,4 +77,4 @@ jobs:
             sudo systemctl start docker
             cd /var/www/phishio
             git config pull.ff only
-            bash deploy_phishio.sh 2
+            sudo deploy_phishio.sh 2
