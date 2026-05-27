@@ -28,8 +28,12 @@ if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger("PhishioAPI")
 
 logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 
@@ -172,8 +176,8 @@ async def check_url(request: CheckUrlRequest):
     try:
         doc_id = generate_firestore_id(request.url)
 
-        logger.info(
-            f"[DEBUG] Buscando no Firestore ID: {doc_id} para URL: {request.url}"
+        logger.debug(
+            f"[FIRESTORE] Buscando ID: {doc_id} para URL: {request.url}"
         )
 
         doc_ref = db.collection("reputacao_urls_v2").document(doc_id)
@@ -185,31 +189,32 @@ async def check_url(request: CheckUrlRequest):
             is_verified = data.get("verificado_sistema", False)
             status_banco = data.get("status", "safe")
 
-            logger.info(
-                f"[DEBUG] Documento encontrado no Cache! Status: {status_banco}, Score: {score}"
+            logger.debug(
+                f"[FIRESTORE] Documento encontrado no Cache! Status: {status_banco}, Score: {score}"
             )
 
             if is_verified:
                 logger.info(
-                    f"Cache HIT (Autoridade): {request.url} - Veredito: {status_banco}"
+                    f"[CACHE HIT] Status: {status_banco} (Autoridade) | Score: {score} | URL: {request.url}"
                 )
                 return CheckUrlResponse(status=status_banco, score=score)
 
             if score >= 15:
                 logger.info(
-                    f"Cache HIT (Comunidade - Phishing): {request.url}")
+                    f"[CACHE HIT] Status: phishing (Comunidade) | Score: {score} | URL: {request.url}"
+                )
                 return CheckUrlResponse(status="phishing", score=score)
 
             if score < 0:
-                logger.info(f"Cache HIT (Comunidade - Safe): {request.url}")
+                logger.info(f"[CACHE HIT] Status: safe (Comunidade) | Score: {score} | URL: {request.url}")
                 return CheckUrlResponse(status="safe", score=score)
 
             logger.info(
-                f"URL em Estado Neutro (Score: {score}). Acionando análise profunda..."
+                f"[CACHE NEUTRAL] Score: {score}. Acionando análise profunda para URL: {request.url}"
             )
         else:
-            logger.warning(
-                f"[DEBUG] Cache MISS Total: O ID {doc_id} não existe na coleção 'reputacao_urls_v2'."
+            logger.info(
+                f"[CACHE MISS] ID: {doc_id} ausente na coleção. URL: {request.url}"
             )
 
     except Exception as e:
@@ -217,10 +222,10 @@ async def check_url(request: CheckUrlRequest):
 
     if not request.dom or request.dom.strip() == "":
         logger.info(
-            f"Cache MISS para {request.url}. DOM não fornecido. Solicitando à extensão...")
+            f"[CONTENT NEEDED] DOM não fornecido. Solicitando à extensão para URL: {request.url}")
         return CheckUrlResponse(status="needs_content", score=0.0)
 
-    logger.info(f"Acionando motor vetorial para {request.url}")
+    logger.info(f"[VECTOR ENGINE] Acionando análise de conteúdo para URL: {request.url}")
     try:
         texto_base = request.content if request.content else request.dom
 
@@ -236,6 +241,8 @@ async def check_url(request: CheckUrlRequest):
                 status_final = "suspicious"
             else:
                 status_final = "safe"
+
+            logger.info(f"[VECTOR RESULT] Status Final: {status_final} | Score Máximo: {maior_score:.4f} | URL: {request.url}")
 
             try:
                 if db:

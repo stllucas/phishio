@@ -20,7 +20,7 @@ POSTINGS_BIN_FILE = os.path.join(DATA_DIR, 'postings.bin')
 NORMS_FILE = os.path.join(DATA_DIR, 'norms.json')
 IDF_DB_FILE = os.path.join(DATA_DIR, 'idf_warm.db')
 
-logger = getLogger('ColetorLogger')
+logger = getLogger('PhishioEngine')
 
 
 class SearchEngine:
@@ -157,8 +157,9 @@ class SearchEngine:
 
         ranking_ordenado = sorted(scores, key=lambda x: x[1], reverse=True)
         wall_duration = time.time() - start_wall_time
+        top_score = ranking_ordenado[0][1] if ranking_ordenado else 0.0
         logger.info(
-            f"[RANKING END] Docs: {len(ranking_ordenado)}. Tempo: {wall_duration:.4f}s.")
+            f"[RANKING END] Docs: {len(ranking_ordenado)} | Score Máximo: {top_score:.4f} | Tempo: {wall_duration:.4f}s.")
 
         return ranking_ordenado
 

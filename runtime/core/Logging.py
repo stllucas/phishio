@@ -9,7 +9,7 @@ _LOGGER = None
 _LOG_FILENAME = None
 
 
-def setup_logging():
+def setup_logging(logger_name='PhishioEngine'):
     """
     Configura o sistema de logging do coletor.
 
@@ -29,11 +29,12 @@ def setup_logging():
         log_execution_dir, f'coletor_run_{timestamp}.log')
     _LOG_FILENAME = log_filename
 
-    logger = logging.getLogger('ColetorLogger')
+    logger = logging.getLogger(logger_name)
     logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
 
     file_handler = logging.FileHandler(log_filename, encoding='utf-8')
     file_handler.setFormatter(formatter)
