@@ -58,6 +58,7 @@ docs/Relatórios-RIWRS
 # Secrets / Credentials
 secrets/
 secrets
+deploy_phishio.sh
 .env
 .env.local
 *.pem
