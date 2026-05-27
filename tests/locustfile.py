@@ -17,8 +17,8 @@ class PhishioCheckUrlUser(HttpUser):
 
     def generate_random_dom(self):
         """Gera um conteúdo HTML (DOM) aleatório de tamanho razoável para popular o teste."""
-        random_text = ''.join(random.choices(
-            string.ascii_letters + string.digits, k=150))
+        termos_phishing = ['banco', 'seguro', 'atualizacao', 'conta', 'cartao', 'token', 'urgente', 'pix', 'promocao', 'gratis']
+        random_text = ' '.join(random.choices(termos_phishing, k=30))
         return f"<html><head><title>Test {random.randint(1, 100)}</title></head><body><h1>Hello</h1><p>{random_text}</p></body></html>"
 
     @task
