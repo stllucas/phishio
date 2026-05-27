@@ -23,7 +23,7 @@ A arquitetura do projeto é composta por dois componentes principais interligado
 
 * **API Backend:** Desenvolvida em `Python` com o framework `FastAPI`, é responsável pela análise profunda de conteúdo (utilizando motor vetorial TF-IDF) e pelo gerenciamento da reputação das URLs via **Firestore** (Firebase).
 * **Extensão para Google Chrome:** Atua como o cliente do sistema (compatível com **Manifest V3**), analisando silenciosamente as páginas visitadas.
-* **Feedback Visual:** Fornece retorno em tempo real através de um *Popup* interativo guiado por estados claros (🟢 Seguro, 🟡 Suspeito, 🔴 Perigoso).
+* **Feedback Visual:** Fornece retorno em tempo real através de um *Popup* interativo guiado por estados claros (<img src="extension\icons\shield-safe-16.png" alt="logo site seguro"/> Seguro, <img src="extension\icons\shield-warning-16.png" alt="logo site suspeito"/> Suspeito, <img src="extension\icons\shield-danger-16.png" alt="logo site phishing"/> Perigoso).
 * **Interatividade:** Alerta o usuário oferecendo ações seguras para evitar ataques. Além disso, a interface permite que o usuário reporte sites maliciosos facilmente, alimentando diretamente a base de dados de *Crowdsourcing*.
 
 ---
