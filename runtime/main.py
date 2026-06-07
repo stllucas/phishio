@@ -11,7 +11,8 @@ import requests
 from google.api_core.client_options import ClientOptions
 from google.cloud import firestore
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException, Request, RedirectResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from core.GeoLocator import get_location_by_ip
 from core.SearchEngine import SearchEngine
 from core.Config import SECRETS_FILE
