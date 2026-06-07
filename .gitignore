@@ -54,6 +54,7 @@ maintenance/provas_unitarias/
 maintenance/html_pages_temp/
 imagens-comportamentos/
 docs/Relatórios-RIWRS
+tests/resultados/
 
 # Secrets / Credentials
 secrets/

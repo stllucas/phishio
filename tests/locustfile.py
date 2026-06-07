@@ -1,6 +1,5 @@
 """Módulo de testes de carga utilizando Locust para simular acessos simultâneos à API."""
 import random
-import string
 from locust import HttpUser, task, between
 
 

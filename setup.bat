@@ -31,6 +31,9 @@ echo.
 echo [3/6] Atualizando o PIP...
 python.exe -m pip install --upgrade pip
 
+echo [INFO] Limpando cache antigo do PIP para evitar conflitos de desserializacao...
+pip cache purge > nul 2>&1
+
 echo.
 echo [4/6] Instalando dependências do projeto...
 if exist "requirements.txt" (
@@ -83,22 +86,22 @@ goto :MigrationEnd
 :MigrationEnd
 echo.
 echo ==============================================================
-echo           AMBIENTE CONFIGURADO COM SUCESSO (WINDOWS)
+echo  AMBIENTE CONFIGURADO COM SUCESSO (WINDOWS)
 echo ==============================================================
 echo.
 echo [BACKEND - COMO INICIAR]
-echo   1. Ative o venv:     .\venv\Scripts\activate
-echo   2. Acesse a pasta:   cd runtime
-echo   3. Inicie a API:     py -m uvicorn main:app --reload
+echo  1. Ative o venv:  .\venv\Scripts\activate
+echo  2. Acesse a pasta:  cd runtime
+echo  3. Inicie a API:  py -m uvicorn main:app --reload
 echo.
 echo [FRONTEND - COMO INSTALAR A EXTENSAO]
-echo   1. Acesse chrome://extensions/ no Google Chrome
-echo   2. Ative o "Modo do desenvolvedor"
-echo   3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension'
+echo  1. Acesse chrome://extensions/ no Google Chrome
+echo  2. Ative o "Modo do desenvolvedor"
+echo  3. Clique em "Carregar sem compactacao" e selecione a pasta 'extension'
 echo.
 echo [TESTES]
-echo   - Testes Automatizados: pytest (na raiz com venv ativado)
-echo   - Stress Test: py tests\start_stress_test.py
+echo  - Testes Automatizados: pytest (na raiz com venv ativado)
+echo  - Stress Test: py tests\start_stress_test.py
 echo ==============================================================
 echo.
 
